@@ -445,3 +445,20 @@ export async function refundDeposit(_prev: AuthFormState, formData: FormData): P
   revalidatePath("/deposits");
   return undefined;
 }
+
+export async function endLease(_prev: AuthFormState, formData: FormData): Promise<AuthFormState> {
+  const { supabase } = await currentOrgId();
+  const leaseId = String(formData.get("leaseId") ?? "");
+  const tenantId = String(formData.get("tenantId") ?? "");
+  const endDate = String(formData.get("endDate") ?? "").trim();
+  const status = String(formData.get("status") ?? "ended") as Database["public"]["Enums"]["lease_status"];
+  if (!leaseId || !endDate) return { error: "Pick an end date" };
+
+  const { error } = await supabase.rpc("end_lease", { p_lease_id: leaseId, p_end_date: endDate, p_status: status });
+  if (error) return { error: error.message };
+
+  revalidatePath(`/tenants/${tenantId}`);
+  revalidatePath("/leases");
+  revalidatePath("/properties");
+  return undefined;
+}

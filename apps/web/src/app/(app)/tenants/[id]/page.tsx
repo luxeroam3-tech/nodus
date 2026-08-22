@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { TableCard, Th, Td, Money, StatusPill, EmptyState } from "@/components/ui";
 import { EditTenantHeader } from "./edit-tenant-header";
 import { DepositCard } from "./deposit-card";
+import { EndLeaseButton } from "./end-lease-button";
 
 export default async function TenantDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -46,7 +47,11 @@ export default async function TenantDetailPage({ params }: { params: Promise<{ i
   const balanceCents = (docs ?? []).reduce((s, d) => s + (d.total_cents - d.paid_cents - d.credited_cents), 0);
   const docNumberById = new Map((docs ?? []).map((d) => [d.id, d.number]));
   const activeLease = (leases ?? []).find((l) => l.status === "active");
-  const activeDeposit = activeLease ? (deposits ?? []).find((d) => d.lease_id === activeLease.id) : undefined;
+  // Deposit card tracks the most recent lease overall, not just an active
+  // one — a lease that just ended still needs its deposit settled, and
+  // that shouldn't vanish the moment "End lease" is clicked.
+  const depositLease = activeLease ?? (leases ?? [])[0];
+  const relevantDeposit = depositLease ? (deposits ?? []).find((d) => d.lease_id === depositLease.id) : undefined;
 
   return (
     <div>
@@ -79,17 +84,22 @@ export default async function TenantDetailPage({ params }: { params: Promise<{ i
           <EmptyState title="No leases yet" body="This tenant isn't attached to a lease." />
         ) : (
           (leases ?? []).map((l: any) => (
-            <div key={l.id} className="flex justify-between items-center px-[18px] py-3 border-t border-[var(--border)] flex-wrap gap-2.5">
-              <div>
-                <p className="text-[13.5px] font-semibold m-0">
-                  {l.units?.properties?.name} {l.units?.unit_number}
-                </p>
-                <p className="text-[12px] text-[var(--text-muted)] mt-0.5">
-                  <Money cents={l.rent_amount_cents} />
-                  /mo · {l.start_date} {l.end_date ? `to ${l.end_date}` : "· ongoing"}
-                </p>
+            <div key={l.id} className="px-[18px] py-3 border-t border-[var(--border)]">
+              <div className="flex justify-between items-center flex-wrap gap-2.5">
+                <div>
+                  <p className="text-[13.5px] font-semibold m-0">
+                    {l.units?.properties?.name} {l.units?.unit_number}
+                  </p>
+                  <p className="text-[12px] text-[var(--text-muted)] mt-0.5">
+                    <Money cents={l.rent_amount_cents} />
+                    /mo · {l.start_date} {l.end_date ? `to ${l.end_date}` : "· ongoing"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <StatusPill status={l.status} />
+                  {l.status === "active" && <EndLeaseButton leaseId={l.id} tenantId={tenant.id} />}
+                </div>
               </div>
-              <StatusPill status={l.status} />
             </div>
           ))
         )}
@@ -207,8 +217,8 @@ export default async function TenantDetailPage({ params }: { params: Promise<{ i
           )}
         </div>
 
-        {activeLease && (
-          <DepositCard leaseId={activeLease.id} depositAmountCents={activeLease.deposit_amount_cents} deposit={activeDeposit} />
+        {depositLease && (
+          <DepositCard leaseId={depositLease.id} depositAmountCents={depositLease.deposit_amount_cents} deposit={relevantDeposit} />
         )}
 
         <div className="card overflow-hidden">

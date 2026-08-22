@@ -29,11 +29,19 @@ export default async function TenantPortalPage({ params }: { params: Promise<{ o
     .eq("status", "active")
     .maybeSingle();
 
-  const [{ data: maintenanceRequests }, { data: checklists }] = await Promise.all([
+  // Deposit tracks the tenant's most recent lease regardless of status —
+  // a lease that just ended still has a deposit the tenant wants to see
+  // settled, and it shouldn't disappear the moment the lease ends.
+  const { data: mostRecentLease } = lease
+    ? { data: lease }
+    : await supabase.from("leases").select("id").eq("tenant_id", tenant.id).order("start_date", { ascending: false }).limit(1).maybeSingle();
+
+  const [{ data: maintenanceRequests }, { data: checklists }, { data: deposit }] = await Promise.all([
     supabase.from("maintenance_requests").select("id, title, status, priority, created_at").eq("tenant_id", tenant.id).order("created_at", { ascending: false }).limit(5),
     lease
       ? supabase.from("move_checklists").select("id, type, status, move_checklist_items(id, label, checked)").eq("lease_id", lease.id)
       : Promise.resolve({ data: [] as any[] }),
+    mostRecentLease ? supabase.from("deposits").select("*").eq("lease_id", mostRecentLease.id).maybeSingle() : Promise.resolve({ data: null as any }),
   ]);
 
   const { data: openDocs } = await supabase
@@ -86,6 +94,26 @@ export default async function TenantPortalPage({ params }: { params: Promise<{ o
         <div className="card" style={{ padding: "16px 18px", marginBottom: 16 }}>
           <p style={{ fontSize: 12.5, color: "var(--text-secondary)", margin: "0 0 4px" }}>Monthly rent</p>
           <p style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>{formatKES(lease.rent_amount_cents)}</p>
+        </div>
+      )}
+
+      {deposit && (
+        <div className="card" style={{ padding: "16px 18px", marginBottom: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <p style={{ fontSize: 12.5, color: "var(--text-secondary)", margin: 0 }}>Security deposit</p>
+            <span
+              className={`pill ${deposit.status === "refunded" ? "success" : deposit.status === "forfeited" ? "danger" : deposit.status === "partially_refunded" ? "warning" : "neutral"}`}
+            >
+              {deposit.status === "held" ? "Held" : deposit.status === "partially_refunded" ? "Partially refunded" : deposit.status === "refunded" ? "Refunded" : "Forfeited"}
+            </span>
+          </div>
+          <p style={{ fontSize: 15, fontWeight: 600, margin: "6px 0 0" }}>{formatKES(deposit.amount_cents)}</p>
+          {deposit.status !== "held" && (
+            <p style={{ fontSize: 11.5, color: "var(--text-muted)", margin: "4px 0 0" }}>
+              {formatKES(deposit.refunded_cents)} refunded, {formatKES(deposit.forfeited_cents)} withheld
+              {deposit.refund_notes ? ` — ${deposit.refund_notes}` : ""}
+            </p>
+          )}
         </div>
       )}
 

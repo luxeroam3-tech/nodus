@@ -9,7 +9,7 @@ import { createTestUser, deleteTestUser, createOrgAsOwner, createProperty, creat
 describe("Phase 8-9 multi-tenancy isolation", () => {
   let ownerA: TestUser, ownerB: TestUser;
   let orgA: { id: string }, orgB: { id: string };
-  let bankAccountA: any, paymentGatewayA: any, smsSettingsA: any, depositA: any;
+  let bankAccountA: any, paymentGatewayA: any, smsSettingsA: any, depositA: any, leaseA: any;
 
   beforeAll(async () => {
     ownerA = await createTestUser();
@@ -33,12 +33,14 @@ describe("Phase 8-9 multi-tenancy isolation", () => {
     const propertyA = await createProperty(orgA.id, "Riverside Block A");
     const unitA = await createUnit(orgA.id, propertyA.id, "R1");
     const tenantA = await createTenant(orgA.id, "Isolation Test Tenant");
-    const leaseA = await createLease(orgA.id, unitA.id, tenantA.id);
+    leaseA = await createLease(orgA.id, unitA.id, tenantA.id);
     const { data: deposit } = await adminClient.from("deposits").insert({ org_id: orgA.id, lease_id: leaseA.id, amount_cents: 5000000, method: "cash" }).select().single();
     depositA = deposit;
   }, 30_000);
 
   afterAll(async () => {
+    await adminClient.from("move_checklist_items").delete().eq("org_id", orgA.id);
+    await adminClient.from("move_checklists").delete().eq("org_id", orgA.id);
     await adminClient.from("deposits").delete().eq("org_id", orgA.id);
     await adminClient.from("leases").delete().eq("org_id", orgA.id);
     await adminClient.from("tenants").delete().eq("org_id", orgA.id);
@@ -104,6 +106,26 @@ describe("Phase 8-9 multi-tenancy isolation", () => {
       p_notes: "",
     });
     expect(error).toBeTruthy();
+  });
+
+  it("owner B cannot call end_lease on org A's lease", async () => {
+    const { error } = await ownerB.client.rpc("end_lease", { p_lease_id: leaseA.id, p_end_date: "2026-01-01", p_status: "ended" });
+    expect(error).toBeTruthy();
+
+    const { data: stillActive } = await adminClient.from("leases").select("status").eq("id", leaseA.id).single();
+    expect(stillActive?.status).toBe("active");
+  });
+
+  it("owner A can end their own lease, which vacates the unit and starts a move-out checklist", async () => {
+    const { data: ended, error } = await ownerA.client.rpc("end_lease", { p_lease_id: leaseA.id, p_end_date: "2026-08-22", p_status: "ended" });
+    expect(error).toBeFalsy();
+    expect(ended?.status).toBe("ended");
+
+    const { data: unit } = await adminClient.from("units").select("status").eq("id", leaseA.unit_id).single();
+    expect(unit?.status).toBe("vacant");
+
+    const { data: checklist } = await adminClient.from("move_checklists").select("type").eq("lease_id", leaseA.id).eq("type", "move_out").maybeSingle();
+    expect(checklist).toBeTruthy();
   });
 
   it("owner B cannot insert a bank account into org A", async () => {

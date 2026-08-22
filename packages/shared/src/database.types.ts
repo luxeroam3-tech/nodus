@@ -1634,6 +1634,35 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      end_lease: {
+        Args: {
+          p_end_date: string
+          p_lease_id: string
+          p_status: Database["public"]["Enums"]["lease_status"]
+        }
+        Returns: {
+          created_at: string
+          deposit_amount_cents: number
+          end_date: string | null
+          id: string
+          invoice_due_offset_days: number
+          next_invoice_date: string | null
+          org_id: string
+          rent_amount_cents: number
+          rent_frequency: Database["public"]["Enums"]["billing_frequency"]
+          start_date: string
+          status: Database["public"]["Enums"]["lease_status"]
+          tenant_id: string
+          unit_id: string
+          updated_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "leases"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       fiscalize_document: {
         Args: { p_document_id: string }
         Returns: {
@@ -1970,6 +1999,7 @@ export type Database = {
         Args: { roles: Database["public"]["Enums"]["org_role"][] }
         Returns: string[]
       }
+      user_tenant_deposit_ids: { Args: never; Returns: string[] }
       user_tenant_document_ids: { Args: never; Returns: string[] }
       user_tenant_ids: { Args: never; Returns: string[] }
       user_tenant_property_ids: { Args: never; Returns: string[] }
