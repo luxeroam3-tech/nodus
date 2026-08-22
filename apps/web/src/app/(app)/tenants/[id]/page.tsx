@@ -4,6 +4,7 @@ import { TableCard, Th, Td, Money, StatusPill, EmptyState } from "@/components/u
 import { EditTenantHeader } from "./edit-tenant-header";
 import { DepositCard } from "./deposit-card";
 import { EndLeaseButton } from "./end-lease-button";
+import { PortalAccessCard } from "./portal-access-card";
 
 export default async function TenantDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -220,6 +221,8 @@ export default async function TenantDetailPage({ params }: { params: Promise<{ i
         {depositLease && (
           <DepositCard leaseId={depositLease.id} depositAmountCents={depositLease.deposit_amount_cents} deposit={relevantDeposit} />
         )}
+
+        <PortalAccessCard tenantId={tenant.id} hasPortal={!!tenant.user_id} defaultEmail={tenant.email} />
 
         <div className="card overflow-hidden">
           <div className="px-[18px] pt-4 pb-3">

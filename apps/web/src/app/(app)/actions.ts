@@ -462,3 +462,45 @@ export async function endLease(_prev: AuthFormState, formData: FormData): Promis
   revalidatePath("/properties");
   return undefined;
 }
+
+export type PortalAccessState = { error?: string; success?: { email: string; password: string; loginUrl: string } } | undefined;
+
+export async function provisionTenantPortalAccess(_prev: PortalAccessState, formData: FormData): Promise<PortalAccessState> {
+  const { supabase, orgId } = await currentOrgId();
+  const tenantId = String(formData.get("tenantId") ?? "");
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!tenantId || !email) return { error: "Enter an email address" };
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: membership } = await supabase.from("org_memberships").select("role").eq("org_id", orgId).eq("user_id", user!.id).maybeSingle();
+  if (!membership || !["owner", "manager"].includes(membership.role)) return { error: "Only owners and managers can set up tenant portal access" };
+
+  const { data: tenant } = await supabase.from("tenants").select("id, full_name, user_id, org_id").eq("id", tenantId).maybeSingle();
+  if (!tenant || tenant.org_id !== orgId) return { error: "Tenant not found" };
+  if (tenant.user_id) return { error: "This tenant already has portal access" };
+
+  const { data: org } = await supabase.from("organizations").select("slug").eq("id", orgId).single();
+  const crypto = await import("node:crypto");
+  const password = crypto.randomBytes(9).toString("base64url");
+  const admin = createAdminClient();
+
+  const { data: created, error: createErr } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { full_name: tenant.full_name },
+  });
+  if (createErr) return { error: createErr.message.includes("already been registered") ? "That email is already registered — ask the tenant to sign in instead." : createErr.message };
+
+  const { error: linkErr } = await admin.from("tenants").update({ user_id: created.user.id, email }).eq("id", tenantId);
+  if (linkErr) {
+    await admin.auth.admin.deleteUser(created.user.id);
+    return { error: linkErr.message };
+  }
+
+  revalidatePath(`/tenants/${tenantId}`);
+  revalidatePath("/tenants");
+  return { success: { email, password, loginUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/portal/${org?.slug}/login` } };
+}
