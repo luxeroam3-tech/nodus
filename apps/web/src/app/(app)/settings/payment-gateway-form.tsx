@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
-import { updatePaymentGateway } from "../actions";
+import { useActionState, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { updatePaymentGateway, registerMpesaC2b } from "../actions";
 import type { AuthFormState } from "../../(auth)/actions";
 
 export function PaymentGatewayForm({
@@ -9,12 +10,14 @@ export function PaymentGatewayForm({
   title,
   enabled,
   environment,
+  c2bRegisteredAt,
   disabled,
 }: {
   gatewayId: "mpesa_daraja" | "kopokopo";
   title: string;
   enabled: boolean;
   environment: string;
+  c2bRegisteredAt?: string | null;
   disabled?: boolean;
 }) {
   const [state, formAction, pending] = useActionState<AuthFormState, FormData>(updatePaymentGateway, undefined);
@@ -55,7 +58,41 @@ export function PaymentGatewayForm({
       <button className="btn btn-primary" type="submit" disabled={pending || disabled}>
         {pending ? "Saving…" : "Save"}
       </button>
+
+      {gatewayId === "mpesa_daraja" && enabled && <C2bRegistration registeredAt={c2bRegisteredAt} disabled={disabled} />}
     </form>
+  );
+}
+
+function C2bRegistration({ registeredAt, disabled }: { registeredAt?: string | null; disabled?: boolean }) {
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  return (
+    <div className="mt-3 pt-3 border-t border-[var(--border)]">
+      <p className="text-[12px] text-[var(--text-muted)] mb-2">
+        {registeredAt
+          ? `C2B URLs registered with Safaricom on ${new Date(registeredAt).toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric" })}.`
+          : "Manual paybill deposits (no STK push) won't be confirmed until you register your callback URLs with Safaricom."}
+      </p>
+      {error && <p className="field-error">{error}</p>}
+      <button
+        type="button"
+        className="btn"
+        disabled={pending || disabled}
+        onClick={() =>
+          startTransition(async () => {
+            setError(null);
+            const result = await registerMpesaC2b();
+            if (result?.error) setError(result.error);
+            else router.refresh();
+          })
+        }
+      >
+        {pending ? "Registering…" : registeredAt ? "Re-register C2B URLs" : "Register C2B URLs"}
+      </button>
+    </div>
   );
 }
 

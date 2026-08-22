@@ -19,7 +19,7 @@ export default async function SettingsPage() {
   const [{ data: org }, { data: smsSettings }, { data: gateways }, { data: sub }] = await Promise.all([
     supabase.from("organizations").select("id, name, kra_pin, vat_registered").eq("id", membership.org_id).maybeSingle(),
     supabase.from("sms_settings").select("enabled, provider").eq("org_id", membership.org_id).maybeSingle(),
-    supabase.from("payment_gateways").select("gateway_id, enabled, environment").eq("org_id", membership.org_id),
+    supabase.from("payment_gateways").select("gateway_id, enabled, environment, c2b_registered_at").eq("org_id", membership.org_id),
     supabase.from("nodus_subscriptions").select("plan").eq("org_id", membership.org_id).maybeSingle(),
   ]);
 
@@ -55,7 +55,14 @@ export default async function SettingsPage() {
         <div className="card px-[18px] py-4">
           <h3 className="[font-family:var(--font-display)] text-[15px] font-semibold mb-1">M-Pesa Daraja</h3>
           <p className="text-[12.5px] text-[var(--text-muted)] mb-4">STK push and C2B collections straight to your paybill.</p>
-          <PaymentGatewayForm gatewayId="mpesa_daraja" title="M-Pesa Daraja" enabled={mpesa?.enabled ?? false} environment={mpesa?.environment ?? "sandbox"} disabled={!isOwner} />
+          <PaymentGatewayForm
+            gatewayId="mpesa_daraja"
+            title="M-Pesa Daraja"
+            enabled={mpesa?.enabled ?? false}
+            environment={mpesa?.environment ?? "sandbox"}
+            c2bRegisteredAt={mpesa?.c2b_registered_at}
+            disabled={!isOwner}
+          />
         </div>
 
         <div className="card px-[18px] py-4">

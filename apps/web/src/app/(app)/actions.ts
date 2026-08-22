@@ -236,6 +236,40 @@ export async function updatePaymentGateway(_prev: AuthFormState, formData: FormD
   return undefined;
 }
 
+/**
+ * Registers the C2B confirmation/validation URLs with Safaricom so paybill
+ * deposits with no prior STK push (a tenant paying manually via the M-Pesa
+ * menu) actually reach the webhook — without this one-time registration,
+ * only STK-pushed payments are ever confirmed. Daraja-only; KopoKopo tills
+ * register their webhook in the KopoKopo dashboard instead.
+ */
+export async function registerMpesaC2b(): Promise<AuthFormState> {
+  const { supabase, orgId } = await currentOrgId();
+  const { data: gatewayConfig } = await supabase.from("payment_gateways").select("*").eq("org_id", orgId).eq("gateway_id", "mpesa_daraja").maybeSingle();
+  if (!gatewayConfig || !gatewayConfig.enabled) return { error: "Enable and save M-Pesa Daraja first" };
+
+  const { getGateway } = await import("@nodus/mpesa");
+  const gateway = getGateway({
+    orgId,
+    gatewayId: "mpesa_daraja",
+    configJson: gatewayConfig.config_json,
+    environment: gatewayConfig.environment as "sandbox" | "production",
+    webhookSecret: gatewayConfig.webhook_secret,
+  });
+
+  try {
+    await gateway.registerC2b!();
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "C2B registration failed" };
+  }
+
+  const { error } = await supabase.from("payment_gateways").update({ c2b_registered_at: new Date().toISOString() }).eq("org_id", orgId).eq("gateway_id", "mpesa_daraja");
+  if (error) return { error: error.message };
+
+  revalidatePath("/settings");
+  return undefined;
+}
+
 export async function recordExpense(_prev: AuthFormState, formData: FormData): Promise<AuthFormState> {
   const { supabase, orgId } = await currentOrgId();
   const date = String(formData.get("date") ?? "").trim();
