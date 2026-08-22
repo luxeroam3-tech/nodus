@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader, PrimaryLink, TableCard, Th, Td, EmptyState } from "@/components/ui";
 
 export default async function TenantsPage() {
   const supabase = await createClient();
@@ -7,28 +7,34 @@ export default async function TenantsPage() {
 
   return (
     <div>
-      <div className="page-header">
-        <p className="page-title">Tenants</p>
-        <Link href="/tenants/new" className="btn btn-primary" style={{ textDecoration: "none" }}>
-          Add tenant
-        </Link>
-      </div>
+      <PageHeader title="Tenants" action={<PrimaryLink href="/tenants/new">Add tenant</PrimaryLink>} />
 
-      <div className="card" style={{ overflow: "hidden" }}>
-        {(tenants ?? []).length === 0 ? (
-          <div style={{ padding: 28, textAlign: "center", color: "var(--text-muted)", fontSize: 13.5 }}>No tenants yet.</div>
-        ) : (
-          (tenants ?? []).map((t) => (
-            <div key={t.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "13px 18px", borderTop: "0.5px solid var(--border)" }}>
-              <div>
-                <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{t.full_name}</p>
-                <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "2px 0 0" }}>{t.phone ?? t.email ?? "No contact on file"}</p>
-              </div>
-              <span className={`pill ${t.user_id ? "success" : "neutral"}`}>{t.user_id ? "Portal active" : "Not yet claimed"}</span>
-            </div>
-          ))
-        )}
-      </div>
+      {(tenants ?? []).length === 0 ? (
+        <EmptyState title="No tenants yet" body="Add your first tenant to start tracking leases and payments." action={<PrimaryLink href="/tenants/new">Add tenant</PrimaryLink>} />
+      ) : (
+        <TableCard>
+          <thead className="[&_th]:border-b [&_th]:border-[var(--border)]">
+            <tr>
+              <Th>Name</Th>
+              <Th>Contact</Th>
+              <Th right>Portal</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {(tenants ?? []).map((t) => (
+              <tr key={t.id} className="[&:not(:first-child)]:border-t [&:not(:first-child)]:border-[var(--border)] hover:bg-[var(--surface-2)]">
+                <Td className="font-semibold">{t.full_name}</Td>
+                <Td className="text-[var(--text-muted)]">{t.phone ?? t.email ?? "No contact on file"}</Td>
+                <Td right>
+                  <span className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-medium ${t.user_id ? "bg-[var(--success-bg)] text-[var(--success-ink)]" : "bg-[var(--surface-3)] text-[var(--text-secondary)]"}`}>
+                    {t.user_id ? "Portal active" : "Not yet claimed"}
+                  </span>
+                </Td>
+              </tr>
+            ))}
+          </tbody>
+        </TableCard>
+      )}
     </div>
   );
 }

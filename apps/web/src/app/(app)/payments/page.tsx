@@ -1,9 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { RecordPaymentButton } from "./record-payment-button";
-
-function formatKES(cents: number) {
-  return "KES " + (cents / 100).toLocaleString("en-KE", { maximumFractionDigits: 0 });
-}
+import { PageHeader, TableCard, Th, Td, Money, EmptyState } from "@/components/ui";
 
 export default async function PaymentsPage() {
   const supabase = await createClient();
@@ -18,25 +15,27 @@ export default async function PaymentsPage() {
 
   return (
     <div>
-      <p className="page-title" style={{ marginBottom: 18 }}>Payments</p>
+      <PageHeader title="Payments" />
 
-      <div style={{ display: "grid", gap: 16 }}>
-        <div className="card" style={{ overflow: "hidden" }}>
-          <div style={{ padding: "16px 18px 12px" }}>
-            <h3 style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 600, margin: 0 }}>Open invoices</h3>
+      <div className="grid gap-4">
+        <div className="card overflow-hidden">
+          <div className="px-[18px] pt-4 pb-3">
+            <h3 className="[font-family:var(--font-display)] text-[15px] font-semibold m-0">Open invoices</h3>
           </div>
           {(openDocs ?? []).length === 0 ? (
-            <div style={{ padding: "0 18px 18px", color: "var(--text-muted)", fontSize: 13 }}>Nothing outstanding.</div>
+            <EmptyState title="Nothing outstanding" body="Every invoice has been paid in full." />
           ) : (
             (openDocs ?? []).map((d: any) => {
               const balance = d.total_cents - d.paid_cents;
               return (
-                <div key={d.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 18px", borderTop: "0.5px solid var(--border)", flexWrap: "wrap", gap: 10 }}>
+                <div key={d.id} className="flex justify-between items-center px-[18px] py-3 border-t border-[var(--border)] flex-wrap gap-2.5">
                   <div>
-                    <p style={{ fontSize: 13.5, fontWeight: 600, margin: 0 }}>
+                    <p className="text-[13.5px] font-semibold m-0">
                       {d.tenants?.full_name} · {d.number}
                     </p>
-                    <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "2px 0 0" }}>Due {d.due_date} · {formatKES(balance)} outstanding</p>
+                    <p className="text-[12px] text-[var(--text-muted)] mt-0.5">
+                      Due {d.due_date} · <Money cents={balance} /> outstanding
+                    </p>
                   </div>
                   <RecordPaymentButton documentId={d.id} amountCents={balance} />
                 </div>
@@ -45,31 +44,45 @@ export default async function PaymentsPage() {
           )}
         </div>
 
-        <div className="card" style={{ overflow: "hidden" }}>
-          <div style={{ padding: "16px 18px 12px" }}>
-            <h3 style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 600, margin: 0 }}>Recent payments</h3>
+        {(payments ?? []).length === 0 ? (
+          <div className="card overflow-hidden">
+            <div className="px-[18px] pt-4 pb-3">
+              <h3 className="[font-family:var(--font-display)] text-[15px] font-semibold m-0">Recent payments</h3>
+            </div>
+            <EmptyState title="No payments yet" body="Payments will show up here once rent starts coming in." />
           </div>
-          {(payments ?? []).length === 0 ? (
-            <div style={{ padding: "0 18px 18px", color: "var(--text-muted)", fontSize: 13 }}>No payments recorded yet.</div>
-          ) : (
-            (payments ?? []).map((p: any) => (
-              <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "11px 18px", borderTop: "0.5px solid var(--border)", gap: 10, flexWrap: "wrap" }}>
-                <div>
-                  <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>{formatKES(p.amount_cents)}</p>
-                  <p style={{ fontSize: 11.5, color: "var(--text-muted)", margin: "2px 0 0" }}>
-                    {p.documents?.number} · {p.reference} · {new Date(p.date).toLocaleDateString("en-KE", { day: "numeric", month: "short" })}
-                  </p>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span className="pill success">{p.method}</span>
-                  <a href={`/api/receipts/by-payment/${p.id}`} target="_blank" rel="noopener noreferrer" className="btn" style={{ fontSize: 12, padding: "5px 10px", textDecoration: "none" }}>
-                    Receipt
-                  </a>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+        ) : (
+          <TableCard>
+            <thead className="[&_th]:border-b [&_th]:border-[var(--border)]">
+              <tr>
+                <Th>Invoice</Th>
+                <Th>Reference</Th>
+                <Th>Date</Th>
+                <Th>Method</Th>
+                <Th right>Amount</Th>
+                <Th right>Receipt</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {(payments ?? []).map((p: any) => (
+                <tr key={p.id} className="[&:not(:first-child)]:border-t [&:not(:first-child)]:border-[var(--border)] hover:bg-[var(--surface-2)]">
+                  <Td className="font-semibold">{p.documents?.number}</Td>
+                  <Td className="text-[var(--text-muted)]">{p.reference}</Td>
+                  <Td className="text-[var(--text-muted)]">{new Date(p.date).toLocaleDateString("en-KE", { day: "numeric", month: "short" })}</Td>
+                  <Td className="capitalize text-[var(--text-secondary)]">{p.method}</Td>
+                  <Td right className="font-semibold">
+                    <Money cents={p.amount_cents} />
+                  </Td>
+                  <Td right>
+                    <a href={`/api/receipts/by-payment/${p.id}`} target="_blank" rel="noopener noreferrer" className="btn no-underline text-[12px] px-2.5 py-1">
+                      Receipt
+                    </a>
+                  </Td>
+                </tr>
+              ))}
+            </tbody>
+          </TableCard>
+        )}
       </div>
     </div>
   );

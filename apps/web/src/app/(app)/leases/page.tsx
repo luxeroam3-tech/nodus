@@ -1,10 +1,6 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { IssueInvoiceButton } from "./issue-invoice-button";
-
-function formatKES(cents: number) {
-  return "KES " + (cents / 100).toLocaleString("en-KE", { maximumFractionDigits: 0 });
-}
+import { PageHeader, PrimaryLink, TableCard, Th, Td, Money, StatusPill, EmptyState } from "@/components/ui";
 
 export default async function LeasesPage() {
   const supabase = await createClient();
@@ -15,35 +11,41 @@ export default async function LeasesPage() {
 
   return (
     <div>
-      <div className="page-header">
-        <p className="page-title">Leases</p>
-        <Link href="/leases/new" className="btn btn-primary" style={{ textDecoration: "none" }}>
-          New lease
-        </Link>
-      </div>
+      <PageHeader title="Leases" action={<PrimaryLink href="/leases/new">New lease</PrimaryLink>} />
 
-      <div className="card" style={{ overflow: "hidden" }}>
-        {(leases ?? []).length === 0 ? (
-          <div style={{ padding: 28, textAlign: "center", color: "var(--text-muted)", fontSize: 13.5 }}>No leases yet.</div>
-        ) : (
-          (leases ?? []).map((l: any) => (
-            <div key={l.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "13px 18px", borderTop: "0.5px solid var(--border)", flexWrap: "wrap", gap: 10 }}>
-              <div>
-                <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>
+      {(leases ?? []).length === 0 ? (
+        <EmptyState title="No leases yet" body="Create a lease to start billing a tenant for a unit." action={<PrimaryLink href="/leases/new">New lease</PrimaryLink>} />
+      ) : (
+        <TableCard>
+          <thead className="[&_th]:border-b [&_th]:border-[var(--border)]">
+            <tr>
+              <Th>Tenant / unit</Th>
+              <Th right>Rent</Th>
+              <Th>Next invoice</Th>
+              <Th right>Status</Th>
+              <Th right>Actions</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {(leases ?? []).map((l: any) => (
+              <tr key={l.id} className="[&:not(:first-child)]:border-t [&:not(:first-child)]:border-[var(--border)] hover:bg-[var(--surface-2)]">
+                <Td className="font-semibold">
                   {l.tenants?.full_name} · {l.units?.properties?.name} {l.units?.unit_number}
-                </p>
-                <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "2px 0 0" }}>
-                  {formatKES(l.rent_amount_cents)}/mo · next invoice {l.next_invoice_date ?? "—"}
-                </p>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span className={`pill ${l.status === "active" ? "success" : "neutral"}`}>{l.status}</span>
-                {l.status === "active" && <IssueInvoiceButton leaseId={l.id} />}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+                </Td>
+                <Td right>
+                  <Money cents={l.rent_amount_cents} />
+                  <span className="text-[var(--text-muted)]">/mo</span>
+                </Td>
+                <Td className="text-[var(--text-muted)]">{l.next_invoice_date ?? "—"}</Td>
+                <Td right>
+                  <StatusPill status={l.status} />
+                </Td>
+                <Td right>{l.status === "active" && <IssueInvoiceButton leaseId={l.id} />}</Td>
+              </tr>
+            ))}
+          </tbody>
+        </TableCard>
+      )}
     </div>
   );
 }

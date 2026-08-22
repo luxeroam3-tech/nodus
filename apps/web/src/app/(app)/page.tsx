@@ -1,10 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-
-function formatKES(cents: number) {
-  return "KES " + (cents / 100).toLocaleString("en-KE", { maximumFractionDigits: 0 });
-}
+import { PageHeader, PrimaryLink, StatCard, EmptyState, Money, fmtKES } from "@/components/ui";
 
 const AVATAR_TONES = [
   { bg: "var(--danger-bg)", fg: "var(--danger-ink)" },
@@ -69,26 +66,19 @@ export default async function OverviewPage() {
 
   return (
     <div>
-      <div className="page-header">
-        <div>
-          <p className="page-title">Overview</p>
-          <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "3px 0 0" }}>
-            {(properties ?? []).length} propert{(properties ?? []).length === 1 ? "y" : "ies"} · {totalUnits} units
-          </p>
-        </div>
-      </div>
+      <PageHeader title="Overview" subtitle={`${(properties ?? []).length} propert${(properties ?? []).length === 1 ? "y" : "ies"} · ${totalUnits} units`} />
 
       <div className="hero-grid">
         <div className="hero-card">
           <p className="hero-label">Collected this month</p>
-          <p className="hero-value">{formatKES(collectedThisMonth)}</p>
+          <p className="hero-value">{fmtKES(collectedThisMonth)}</p>
           <Link href="/payments" className="hero-btn">
             View report
           </Link>
         </div>
 
-        <div className="card ring-card" style={{ padding: "18px 20px" }}>
-          <svg width="72" height="72" viewBox="0 0 72 72" style={{ flexShrink: 0 }}>
+        <div className="card ring-card px-5 py-[18px]">
+          <svg width="72" height="72" viewBox="0 0 72 72" className="shrink-0">
             <circle cx="36" cy="36" r="30" fill="none" stroke="var(--surface-3)" strokeWidth="7" />
             <circle
               cx="36"
@@ -112,17 +102,17 @@ export default async function OverviewPage() {
         </div>
       </div>
 
-      <div className="stat-grid" style={{ gridTemplateColumns: "repeat(2, 1fr)", marginBottom: 16 }}>
-        <StatCard label="Outstanding arrears" value={formatKES(arrearsCents)} tone={arrearsCents > 0 ? "danger" : undefined} />
+      <div className="grid grid-cols-2 gap-3.5 mb-4">
+        <StatCard label="Outstanding arrears" cents={arrearsCents} tone={arrearsCents > 0 ? "bad" : "neutral"} />
         <StatCard label="Open invoices" value={String((openDocs ?? []).length)} />
       </div>
 
-      <div className="card" style={{ overflow: "hidden", marginBottom: 16 }}>
-        <div style={{ padding: "16px 18px 12px" }}>
-          <h3 style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 600, margin: 0 }}>Needs attention</h3>
+      <div className="card overflow-hidden mb-4">
+        <div className="px-[18px] pt-4 pb-3">
+          <h3 className="[font-family:var(--font-display)] text-[15px] font-semibold m-0">Needs attention</h3>
         </div>
         {overdue.length === 0 ? (
-          <EmptyState label="Nothing overdue" hint="Every open invoice is still within its due date." />
+          <EmptyState title="Nothing overdue" body="Every open invoice is still within its due date." />
         ) : (
           overdue.map((d: any, i) => {
             const tone = AVATAR_TONES[i % AVATAR_TONES.length];
@@ -132,13 +122,15 @@ export default async function OverviewPage() {
                 <div className="avatar-chip" style={{ background: tone.bg, color: tone.fg }}>
                   {initials(name)}
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: 13.5, fontWeight: 600, margin: 0 }}>{name}</p>
-                  <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "2px 0 0" }}>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13.5px] font-semibold m-0">{name}</p>
+                  <p className="text-[12px] text-[var(--text-muted)] mt-0.5">
                     {d.units?.properties?.name} {d.units?.unit_number} · {d.daysLate} day{d.daysLate === 1 ? "" : "s"} late
                   </p>
                 </div>
-                <span style={{ fontSize: 13.5, fontWeight: 700, color: "var(--danger-ink)", flexShrink: 0 }}>{formatKES(d.balance)}</span>
+                <span className="text-[13.5px] font-bold text-[var(--danger-ink)] shrink-0">
+                  <Money cents={d.balance} />
+                </span>
               </div>
             );
           })
@@ -146,44 +138,46 @@ export default async function OverviewPage() {
       </div>
 
       <div className="content-grid">
-        <div className="card" style={{ overflow: "hidden" }}>
-          <div style={{ padding: "16px 18px 12px" }}>
-            <h3 style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 600, margin: 0 }}>Properties</h3>
+        <div className="card overflow-hidden">
+          <div className="px-[18px] pt-4 pb-3">
+            <h3 className="[font-family:var(--font-display)] text-[15px] font-semibold m-0">Properties</h3>
           </div>
           {(properties ?? []).length === 0 ? (
-            <EmptyState label="No properties yet" hint="Add your first property to get started." href="/properties" cta="Add a property" />
+            <EmptyState title="No properties yet" body="Add your first property to get started." action={<PrimaryLink href="/properties">Add a property</PrimaryLink>} />
           ) : (
             (properties ?? []).map((p) => {
               const propUnits = relevantUnits.filter((u) => u.property_id === p.id);
               const propOccupied = propUnits.filter((u) => u.status === "occupied").length;
               const pct = propUnits.length > 0 ? Math.round((propOccupied / propUnits.length) * 100) : 0;
               return (
-                <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 18px", borderTop: "0.5px solid var(--border)" }}>
-                  <span style={{ fontSize: 12.5, fontWeight: 500, width: 140, flexShrink: 0, color: "var(--text-secondary)" }}>{p.name}</span>
-                  <div style={{ flex: 1, height: 6, background: "var(--surface-3)", borderRadius: 100, overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `${pct}%`, background: "var(--accent)", borderRadius: 100 }} />
+                <div key={p.id} className="flex items-center gap-2.5 px-[18px] py-2.5 border-t border-[var(--border)]">
+                  <span className="text-[12.5px] font-medium w-[140px] shrink-0 text-[var(--text-secondary)]">{p.name}</span>
+                  <div className="flex-1 h-1.5 bg-[var(--surface-3)] rounded-full overflow-hidden">
+                    <div className="h-full rounded-full bg-[var(--accent)]" style={{ width: `${pct}%` }} />
                   </div>
-                  <span style={{ fontSize: 12, color: "var(--text-secondary)", width: 38, textAlign: "right" }}>{pct}%</span>
+                  <span className="text-[12px] text-[var(--text-secondary)] w-[38px] text-right">{pct}%</span>
                 </div>
               );
             })
           )}
         </div>
 
-        <div className="card" style={{ overflow: "hidden" }}>
-          <div style={{ padding: "16px 18px 12px" }}>
-            <h3 style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 600, margin: 0 }}>Recent payments</h3>
+        <div className="card overflow-hidden">
+          <div className="px-[18px] pt-4 pb-3">
+            <h3 className="[font-family:var(--font-display)] text-[15px] font-semibold m-0">Recent payments</h3>
           </div>
           {(recentPayments ?? []).length === 0 ? (
-            <EmptyState label="No payments yet" hint="Payments will show up here once rent starts coming in." />
+            <EmptyState title="No payments yet" body="Payments will show up here once rent starts coming in." />
           ) : (
             (recentPayments ?? []).map((p) => (
-              <div key={p.id} style={{ padding: "11px 18px", borderTop: "0.5px solid var(--border)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-                  <span style={{ fontWeight: 600 }}>{formatKES(p.amount_cents)}</span>
-                  <span className="pill success">{p.method}</span>
+              <div key={p.id} className="px-[18px] py-[11px] border-t border-[var(--border)]">
+                <div className="flex justify-between text-[13px]">
+                  <span className="font-semibold">
+                    <Money cents={p.amount_cents} />
+                  </span>
+                  <span className="inline-block rounded-full px-2.5 py-0.5 text-[11px] font-medium capitalize bg-[var(--success-bg)] text-[var(--success-ink)]">{p.method}</span>
                 </div>
-                <p style={{ fontSize: 11.5, color: "var(--text-muted)", margin: "3px 0 0" }}>
+                <p className="text-[11.5px] text-[var(--text-muted)] mt-0.5">
                   Ref {p.reference} · {new Date(p.date).toLocaleDateString("en-KE", { day: "numeric", month: "short" })}
                 </p>
               </div>
@@ -191,41 +185,6 @@ export default async function OverviewPage() {
           )}
         </div>
       </div>
-    </div>
-  );
-}
-
-function StatCard({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: "danger" }) {
-  return (
-    <div className="card" style={{ padding: "16px 18px" }}>
-      <p style={{ fontSize: 12.5, color: "var(--text-secondary)", margin: "0 0 8px", fontWeight: 500 }}>{label}</p>
-      <p
-        style={{
-          fontFamily: "var(--font-display)",
-          fontSize: 23,
-          fontWeight: 600,
-          margin: 0,
-          color: tone === "danger" ? "var(--danger-ink)" : "var(--text-primary)",
-          fontVariantNumeric: "tabular-nums",
-        }}
-      >
-        {value}
-      </p>
-      {sub && <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "6px 0 0" }}>{sub}</p>}
-    </div>
-  );
-}
-
-function EmptyState({ label, hint, href, cta }: { label: string; hint: string; href?: string; cta?: string }) {
-  return (
-    <div style={{ padding: "28px 18px", textAlign: "center" }}>
-      <p style={{ fontSize: 13.5, fontWeight: 600, margin: "0 0 4px" }}>{label}</p>
-      <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: href ? "0 0 14px" : 0 }}>{hint}</p>
-      {href && cta && (
-        <a href={href} className="btn btn-primary" style={{ textDecoration: "none", display: "inline-flex" }}>
-          {cta}
-        </a>
-      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { StatusControls } from "./status-controls";
+import { PageHeader, PrimaryLink, TableCard, Th, Td, EmptyState } from "@/components/ui";
 
 export default async function MaintenancePage() {
   const supabase = await createClient();
@@ -14,34 +14,33 @@ export default async function MaintenancePage() {
 
   return (
     <div>
-      <div className="page-header">
-        <p className="page-title">Maintenance</p>
-        <Link href="/maintenance/new" className="btn btn-primary" style={{ textDecoration: "none" }}>
-          Report an issue
-        </Link>
-      </div>
+      <PageHeader title="Maintenance" action={<PrimaryLink href="/maintenance/new">Report an issue</PrimaryLink>} />
 
-      <div className="card" style={{ overflow: "hidden", marginBottom: 16 }}>
-        <div style={{ padding: "16px 18px 12px" }}>
-          <h3 style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 600, margin: 0 }}>Open</h3>
+      <div className="card overflow-hidden mb-4">
+        <div className="px-[18px] pt-4 pb-3">
+          <h3 className="[font-family:var(--font-display)] text-[15px] font-semibold m-0">Open</h3>
         </div>
         {open.length === 0 ? (
-          <div style={{ padding: "0 18px 18px", color: "var(--text-muted)", fontSize: 13 }}>Nothing open.</div>
+          <EmptyState title="Nothing open" body="Every reported issue has been resolved." />
         ) : (
           open.map((r: any) => (
-            <div key={r.id} style={{ padding: "13px 18px", borderTop: "0.5px solid var(--border)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+            <div key={r.id} className="px-[18px] py-[13px] border-t border-[var(--border)]">
+              <div className="flex justify-between items-start gap-3">
                 <div>
-                  <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{r.title}</p>
-                  <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "2px 0 0" }}>
+                  <p className="text-[14px] font-semibold m-0">{r.title}</p>
+                  <p className="text-[12.5px] text-[var(--text-muted)] mt-0.5">
                     {r.units?.properties?.name} {r.units?.unit_number}
                     {r.tenants?.full_name ? ` · ${r.tenants.full_name}` : ""}
                   </p>
-                  {r.description && <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "6px 0 0" }}>{r.description}</p>}
+                  {r.description && <p className="text-[13px] text-[var(--text-secondary)] mt-1.5">{r.description}</p>}
                 </div>
-                <span className={`pill ${r.priority === "urgent" ? "danger" : "neutral"}`}>{r.priority}</span>
+                <span
+                  className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-medium capitalize ${r.priority === "urgent" ? "bg-[var(--danger-bg)] text-[var(--danger-ink)]" : "bg-[var(--surface-3)] text-[var(--text-secondary)]"}`}
+                >
+                  {r.priority}
+                </span>
               </div>
-              <div style={{ marginTop: 10 }}>
+              <div className="mt-2.5">
                 <StatusControls requestId={r.id} status={r.status} />
               </div>
             </div>
@@ -50,22 +49,28 @@ export default async function MaintenancePage() {
       </div>
 
       {closed.length > 0 && (
-        <div className="card" style={{ overflow: "hidden" }}>
-          <div style={{ padding: "16px 18px 12px" }}>
-            <h3 style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 600, margin: 0 }}>Closed</h3>
-          </div>
-          {closed.map((r: any) => (
-            <div key={r.id} style={{ display: "flex", justifyContent: "space-between", padding: "11px 18px", borderTop: "0.5px solid var(--border)" }}>
-              <div>
-                <p style={{ fontSize: 13.5, fontWeight: 600, margin: 0 }}>{r.title}</p>
-                <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "2px 0 0" }}>
+        <TableCard>
+          <thead className="[&_th]:border-b [&_th]:border-[var(--border)]">
+            <tr>
+              <Th>Issue</Th>
+              <Th>Unit</Th>
+              <Th right>Status</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {closed.map((r: any) => (
+              <tr key={r.id} className="[&:not(:first-child)]:border-t [&:not(:first-child)]:border-[var(--border)] hover:bg-[var(--surface-2)]">
+                <Td className="font-semibold">{r.title}</Td>
+                <Td className="text-[var(--text-muted)]">
                   {r.units?.properties?.name} {r.units?.unit_number}
-                </p>
-              </div>
-              <span className="pill success">{r.status}</span>
-            </div>
-          ))}
-        </div>
+                </Td>
+                <Td right>
+                  <span className="inline-block rounded-full px-2.5 py-0.5 text-[11px] font-medium capitalize bg-[var(--success-bg)] text-[var(--success-ink)]">{r.status}</span>
+                </Td>
+              </tr>
+            ))}
+          </tbody>
+        </TableCard>
       )}
     </div>
   );

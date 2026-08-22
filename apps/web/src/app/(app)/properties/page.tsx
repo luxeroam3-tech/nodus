@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader, PrimaryLink, TableCard, Th, Td, EmptyState } from "@/components/ui";
 
 export default async function PropertiesPage() {
   const supabase = await createClient();
@@ -14,43 +15,39 @@ export default async function PropertiesPage() {
 
   return (
     <div>
-      <div className="page-header">
-        <p className="page-title">Properties</p>
-        <Link href="/properties/new" className="btn btn-primary" style={{ textDecoration: "none" }}>
-          Add property
-        </Link>
-      </div>
+      <PageHeader title="Properties" action={<PrimaryLink href="/properties/new">Add property</PrimaryLink>} />
 
-      <div className="card" style={{ overflow: "hidden" }}>
-        {(properties ?? []).length === 0 ? (
-          <div style={{ padding: 28, textAlign: "center", color: "var(--text-muted)", fontSize: 13.5 }}>No properties yet.</div>
-        ) : (
-          (properties ?? []).map((p) => {
-            const propUnits = (units ?? []).filter((u) => u.property_id === p.id);
-            return (
-              <Link
-                key={p.id}
-                href={`/properties/${p.id}`}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "14px 18px",
-                  borderTop: "0.5px solid var(--border)",
-                  textDecoration: "none",
-                  color: "inherit",
-                }}
-              >
-                <div>
-                  <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{p.name}</p>
-                  <p style={{ fontSize: 12.5, color: "var(--text-muted)", margin: "2px 0 0" }}>{p.address ?? p.type}</p>
-                </div>
-                <span className="pill neutral">{propUnits.length} units</span>
-              </Link>
-            );
-          })
-        )}
-      </div>
+      {(properties ?? []).length === 0 ? (
+        <EmptyState title="No properties yet" body="Add your first property to start tracking units and tenants." action={<PrimaryLink href="/properties/new">Add property</PrimaryLink>} />
+      ) : (
+        <TableCard>
+          <thead className="[&_th]:border-b [&_th]:border-[var(--border)]">
+            <tr>
+              <Th>Name</Th>
+              <Th>Type / address</Th>
+              <Th right>Units</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {(properties ?? []).map((p) => {
+              const propUnits = (units ?? []).filter((u) => u.property_id === p.id);
+              return (
+                <tr key={p.id} className="[&:not(:first-child)]:border-t [&:not(:first-child)]:border-[var(--border)] hover:bg-[var(--surface-2)]">
+                  <Td className="font-semibold">
+                    <Link href={`/properties/${p.id}`} className="hover:text-[var(--accent)]">
+                      {p.name}
+                    </Link>
+                  </Td>
+                  <Td className="text-[var(--text-muted)] capitalize">{p.address ?? p.type}</Td>
+                  <Td right className="text-[var(--text-secondary)]">
+                    {propUnits.length}
+                  </Td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </TableCard>
+      )}
     </div>
   );
 }
