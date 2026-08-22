@@ -339,6 +339,36 @@ select {
   gap: 16px;
 }
 
+/* Tenant portal shell: a single narrow column on phones, widening into a
+   two-column dashboard once there's room, rather than staying pinned to
+   mobile width and floating in whitespace on a desktop browser. */
+.portal-main {
+  max-width: 480px;
+}
+
+.portal-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (min-width: 720px) {
+  .portal-main {
+    max-width: 1040px;
+  }
+
+  .portal-grid {
+    grid-template-columns: 1.1fr 1.4fr;
+  }
+
+  .portal-grid > .portal-col {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
 .hero-grid {
   display: grid;
   grid-template-columns: 1.3fr 1fr;

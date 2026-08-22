@@ -23,7 +23,8 @@ export default async function PortalLayout({ children, params }: { children: Rea
 
   return (
     <div style={{ minHeight: "100vh" }}>
-      <header style={{ borderBottom: "0.5px solid var(--border)", padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <header style={{ borderBottom: "0.5px solid var(--border)" }}>
+        <div className="portal-main" style={{ margin: "0 auto", padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div
             style={{
@@ -49,8 +50,9 @@ export default async function PortalLayout({ children, params }: { children: Rea
             Sign out
           </button>
         </form>
+        </div>
       </header>
-      <main style={{ maxWidth: 480, margin: "0 auto", padding: "20px 16px 60px" }}>{children}</main>
+      <main className="portal-main" style={{ margin: "0 auto", padding: "20px 16px 60px" }}>{children}</main>
     </div>
   );
 }

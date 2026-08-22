@@ -69,128 +69,133 @@ export default async function TenantPortalPage({ params }: { params: Promise<{ o
         {unit ? `${property?.name} · ${unit.unit_number}` : "No active lease"}
       </p>
 
-      <div
-        className="card"
-        style={{
-          padding: "18px 20px",
-          marginBottom: 16,
-          background: balanceCents > 0 ? "linear-gradient(155deg, var(--accent), var(--accent-ink))" : "linear-gradient(155deg, var(--success), var(--success-ink))",
-          color: "#fff",
-          border: "none",
-        }}
-      >
-        <p style={{ fontSize: 12, opacity: 0.85, margin: "0 0 6px" }}>Current balance</p>
-        <p style={{ fontFamily: "var(--font-display)", fontSize: 27, fontWeight: 700, margin: "0 0 12px", fontVariantNumeric: "tabular-nums" }}>
-          {formatKES(balanceCents)}
-        </p>
-        {balanceCents > 0 && nextDue ? (
-          <PayButton orgSlug={orgSlug} documentId={nextDue.id} amountCents={balanceCents} defaultPhone={tenant?.phone ?? ""} />
-        ) : (
-          <span style={{ fontSize: 13, fontWeight: 600 }}>Paid in full</span>
-        )}
-      </div>
-
-      {lease && (
-        <div className="card" style={{ padding: "16px 18px", marginBottom: 16 }}>
-          <p style={{ fontSize: 12.5, color: "var(--text-secondary)", margin: "0 0 4px" }}>Monthly rent</p>
-          <p style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>{formatKES(lease.rent_amount_cents)}</p>
-        </div>
-      )}
-
-      {deposit && (
-        <div className="card" style={{ padding: "16px 18px", marginBottom: 16 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <p style={{ fontSize: 12.5, color: "var(--text-secondary)", margin: 0 }}>Security deposit</p>
-            <span
-              className={`pill ${deposit.status === "refunded" ? "success" : deposit.status === "forfeited" ? "danger" : deposit.status === "partially_refunded" ? "warning" : "neutral"}`}
-            >
-              {deposit.status === "held" ? "Held" : deposit.status === "partially_refunded" ? "Partially refunded" : deposit.status === "refunded" ? "Refunded" : "Forfeited"}
-            </span>
-          </div>
-          <p style={{ fontSize: 15, fontWeight: 600, margin: "6px 0 0" }}>{formatKES(deposit.amount_cents)}</p>
-          {deposit.status !== "held" && (
-            <p style={{ fontSize: 11.5, color: "var(--text-muted)", margin: "4px 0 0" }}>
-              {formatKES(deposit.refunded_cents)} refunded, {formatKES(deposit.forfeited_cents)} withheld
-              {deposit.refund_notes ? ` — ${deposit.refund_notes}` : ""}
+      <div className="portal-grid">
+        <div className="portal-col">
+          <div
+            className="card"
+            style={{
+              padding: "18px 20px",
+              background: balanceCents > 0 ? "linear-gradient(155deg, var(--accent), var(--accent-ink))" : "linear-gradient(155deg, var(--success), var(--success-ink))",
+              color: "#fff",
+              border: "none",
+            }}
+          >
+            <p style={{ fontSize: 12, opacity: 0.85, margin: "0 0 6px" }}>Current balance</p>
+            <p style={{ fontFamily: "var(--font-display)", fontSize: 27, fontWeight: 700, margin: "0 0 12px", fontVariantNumeric: "tabular-nums" }}>
+              {formatKES(balanceCents)}
             </p>
+            {balanceCents > 0 && nextDue ? (
+              <PayButton orgSlug={orgSlug} documentId={nextDue.id} amountCents={balanceCents} defaultPhone={tenant?.phone ?? ""} />
+            ) : (
+              <span style={{ fontSize: 13, fontWeight: 600 }}>Paid in full</span>
+            )}
+          </div>
+
+          {lease && (
+            <div className="card" style={{ padding: "16px 18px" }}>
+              <p style={{ fontSize: 12.5, color: "var(--text-secondary)", margin: "0 0 4px" }}>Monthly rent</p>
+              <p style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>{formatKES(lease.rent_amount_cents)}</p>
+            </div>
           )}
-        </div>
-      )}
 
-      <Link
-        href={`/portal/${orgSlug}/maintenance/new`}
-        className="card"
-        style={{ display: "block", padding: "14px 18px", marginBottom: 16, textDecoration: "none", color: "inherit" }}
-      >
-        <p style={{ fontSize: 13.5, fontWeight: 600, margin: 0 }}>Report an issue</p>
-        <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "2px 0 0" }}>Leaking tap, broken lock, anything that needs fixing.</p>
-      </Link>
-
-      {(maintenanceRequests ?? []).length > 0 && (
-        <div className="card" style={{ overflow: "hidden", marginBottom: 16 }}>
-          <div style={{ padding: "14px 18px 10px" }}>
-            <h3 style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 600, margin: 0 }}>Your requests</h3>
-          </div>
-          {(maintenanceRequests ?? []).map((r) => (
-            <div key={r.id} style={{ display: "flex", justifyContent: "space-between", padding: "10px 18px", borderTop: "0.5px solid var(--border)" }}>
-              <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>{r.title}</p>
-              <span className={`pill ${r.status === "resolved" || r.status === "closed" ? "success" : r.priority === "urgent" ? "danger" : "warning"}`}>
-                {r.status === "in_progress" ? "In progress" : r.status}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {(checklists ?? []).map((c: any) => {
-        const items = c.move_checklist_items ?? [];
-        const checkedCount = items.filter((i: any) => i.checked).length;
-        return (
-          <div key={c.id} className="card" style={{ padding: "14px 18px", marginBottom: 16 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <p style={{ fontSize: 13.5, fontWeight: 600, margin: 0 }}>{c.type === "move_in" ? "Move-in checklist" : "Move-out checklist"}</p>
-              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                {checkedCount} / {items.length}
-              </span>
-            </div>
-            <div style={{ height: 5, background: "var(--surface-3)", borderRadius: 100, overflow: "hidden" }}>
-              <div
-                style={{
-                  height: "100%",
-                  width: `${items.length ? (checkedCount / items.length) * 100 : 0}%`,
-                  background: c.status === "completed" ? "var(--success)" : "var(--accent)",
-                  borderRadius: 100,
-                }}
-              />
-            </div>
-          </div>
-        );
-      })}
-
-      <div className="card" style={{ overflow: "hidden" }}>
-        <div style={{ padding: "14px 18px 10px" }}>
-          <h3 style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 600, margin: 0 }}>Payment history</h3>
-        </div>
-        {(paymentHistory ?? []).length === 0 ? (
-          <div style={{ padding: "0 18px 16px", color: "var(--text-muted)", fontSize: 13 }}>No payments yet.</div>
-        ) : (
-          (paymentHistory ?? []).map((p) => (
-            <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 18px", borderTop: "0.5px solid var(--border)", gap: 10 }}>
-              <div>
-                <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>{p.method}</p>
-                <p style={{ fontSize: 11.5, color: "var(--text-muted)", margin: "1px 0 0" }}>
-                  {p.reference} · {new Date(p.date).toLocaleDateString("en-KE", { day: "numeric", month: "short" })}
+          {deposit && (
+            <div className="card" style={{ padding: "16px 18px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <p style={{ fontSize: 12.5, color: "var(--text-secondary)", margin: 0 }}>Security deposit</p>
+                <span
+                  className={`pill ${deposit.status === "refunded" ? "success" : deposit.status === "forfeited" ? "danger" : deposit.status === "partially_refunded" ? "warning" : "neutral"}`}
+                >
+                  {deposit.status === "held" ? "Held" : deposit.status === "partially_refunded" ? "Partially refunded" : deposit.status === "refunded" ? "Refunded" : "Forfeited"}
+                </span>
+              </div>
+              <p style={{ fontSize: 15, fontWeight: 600, margin: "6px 0 0" }}>{formatKES(deposit.amount_cents)}</p>
+              {deposit.status !== "held" && (
+                <p style={{ fontSize: 11.5, color: "var(--text-muted)", margin: "4px 0 0" }}>
+                  {formatKES(deposit.refunded_cents)} refunded, {formatKES(deposit.forfeited_cents)} withheld
+                  {deposit.refund_notes ? ` — ${deposit.refund_notes}` : ""}
                 </p>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                <span style={{ fontSize: 13, fontWeight: 600 }}>{formatKES(p.amount_cents)}</span>
-                <a href={`/api/receipts/by-payment/${p.id}`} target="_blank" rel="noopener noreferrer" className="btn" style={{ fontSize: 11.5, padding: "4px 9px", textDecoration: "none" }}>
-                  Receipt
-                </a>
-              </div>
+              )}
             </div>
-          ))
-        )}
+          )}
+
+          <Link
+            href={`/portal/${orgSlug}/maintenance/new`}
+            className="card"
+            style={{ display: "block", padding: "14px 18px", textDecoration: "none", color: "inherit" }}
+          >
+            <p style={{ fontSize: 13.5, fontWeight: 600, margin: 0 }}>Report an issue</p>
+            <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "2px 0 0" }}>Leaking tap, broken lock, anything that needs fixing.</p>
+          </Link>
+
+          {(checklists ?? []).map((c: any) => {
+            const items = c.move_checklist_items ?? [];
+            const checkedCount = items.filter((i: any) => i.checked).length;
+            return (
+              <div key={c.id} className="card" style={{ padding: "14px 18px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <p style={{ fontSize: 13.5, fontWeight: 600, margin: 0 }}>{c.type === "move_in" ? "Move-in checklist" : "Move-out checklist"}</p>
+                  <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                    {checkedCount} / {items.length}
+                  </span>
+                </div>
+                <div style={{ height: 5, background: "var(--surface-3)", borderRadius: 100, overflow: "hidden" }}>
+                  <div
+                    style={{
+                      height: "100%",
+                      width: `${items.length ? (checkedCount / items.length) * 100 : 0}%`,
+                      background: c.status === "completed" ? "var(--success)" : "var(--accent)",
+                      borderRadius: 100,
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="portal-col">
+          {(maintenanceRequests ?? []).length > 0 && (
+            <div className="card" style={{ overflow: "hidden" }}>
+              <div style={{ padding: "14px 18px 10px" }}>
+                <h3 style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 600, margin: 0 }}>Your requests</h3>
+              </div>
+              {(maintenanceRequests ?? []).map((r) => (
+                <div key={r.id} style={{ display: "flex", justifyContent: "space-between", padding: "10px 18px", borderTop: "0.5px solid var(--border)" }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>{r.title}</p>
+                  <span className={`pill ${r.status === "resolved" || r.status === "closed" ? "success" : r.priority === "urgent" ? "danger" : "warning"}`}>
+                    {r.status === "in_progress" ? "In progress" : r.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="card" style={{ overflow: "hidden" }}>
+            <div style={{ padding: "14px 18px 10px" }}>
+              <h3 style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 600, margin: 0 }}>Payment history</h3>
+            </div>
+            {(paymentHistory ?? []).length === 0 ? (
+              <div style={{ padding: "0 18px 16px", color: "var(--text-muted)", fontSize: 13 }}>No payments yet.</div>
+            ) : (
+              (paymentHistory ?? []).map((p) => (
+                <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 18px", borderTop: "0.5px solid var(--border)", gap: 10 }}>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>{p.method}</p>
+                    <p style={{ fontSize: 11.5, color: "var(--text-muted)", margin: "1px 0 0" }}>
+                      {p.reference} · {new Date(p.date).toLocaleDateString("en-KE", { day: "numeric", month: "short" })}
+                    </p>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>{formatKES(p.amount_cents)}</span>
+                    <a href={`/api/receipts/by-payment/${p.id}`} target="_blank" rel="noopener noreferrer" className="btn" style={{ fontSize: 11.5, padding: "4px 9px", textDecoration: "none" }}>
+                      Receipt
+                    </a>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
