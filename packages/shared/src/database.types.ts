@@ -415,8 +415,11 @@ export type Database = {
           deposit_amount_cents: number
           end_date: string | null
           id: string
+          invoice_due_offset_days: number
+          next_invoice_date: string | null
           org_id: string
           rent_amount_cents: number
+          rent_frequency: Database["public"]["Enums"]["billing_frequency"]
           start_date: string
           status: Database["public"]["Enums"]["lease_status"]
           tenant_id: string
@@ -428,8 +431,11 @@ export type Database = {
           deposit_amount_cents?: number
           end_date?: string | null
           id?: string
+          invoice_due_offset_days?: number
+          next_invoice_date?: string | null
           org_id: string
           rent_amount_cents: number
+          rent_frequency?: Database["public"]["Enums"]["billing_frequency"]
           start_date: string
           status?: Database["public"]["Enums"]["lease_status"]
           tenant_id: string
@@ -441,8 +447,11 @@ export type Database = {
           deposit_amount_cents?: number
           end_date?: string | null
           id?: string
+          invoice_due_offset_days?: number
+          next_invoice_date?: string | null
           org_id?: string
           rent_amount_cents?: number
+          rent_frequency?: Database["public"]["Enums"]["billing_frequency"]
           start_date?: string
           status?: Database["public"]["Enums"]["lease_status"]
           tenant_id?: string
@@ -732,6 +741,56 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _issue_rent_invoice_unchecked: {
+        Args: {
+          p_due_date: string
+          p_issue_date: string
+          p_lease_id: string
+          p_org_id: string
+        }
+        Returns: {
+          cost_center_id: string | null
+          created_at: string
+          credited_cents: number
+          due_date: string | null
+          id: string
+          issue_date: string
+          journal_entry_id: string | null
+          number: string
+          org_id: string
+          paid_cents: number
+          status: Database["public"]["Enums"]["document_status"]
+          tenant_id: string | null
+          total_cents: number
+          type: Database["public"]["Enums"]["document_type"]
+          unit_id: string | null
+          updated_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "documents"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      _post_entry_unchecked: {
+        Args: {
+          p_date: string
+          p_lines: Json
+          p_memo: string
+          p_org_id: string
+          p_source_id: string
+          p_source_type: string
+        }
+        Returns: string
+      }
+      advance_date: {
+        Args: {
+          p_date: string
+          p_frequency: Database["public"]["Enums"]["billing_frequency"]
+        }
+        Returns: string
+      }
       create_organization: {
         Args: {
           org_name: string
@@ -750,6 +809,14 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      generate_due_rent_invoices: {
+        Args: { p_cap?: number }
+        Returns: {
+          document_id: string
+          issued_date: string
+          lease_id: string
+        }[]
       }
       get_account_id: {
         Args: { p_code: string; p_org_id: string }
@@ -845,6 +912,7 @@ export type Database = {
     Enums: {
       account_type: "asset" | "liability" | "equity" | "income" | "expense"
       bank_account_kind: "bank" | "mpesa" | "cash"
+      billing_frequency: "weekly" | "monthly" | "quarterly" | "yearly"
       document_status: "open" | "partial" | "paid" | "void"
       document_type: "rent_invoice" | "credit_note" | "bill" | "expense"
       lease_status: "active" | "ended" | "terminated"
@@ -989,6 +1057,7 @@ export const Constants = {
     Enums: {
       account_type: ["asset", "liability", "equity", "income", "expense"],
       bank_account_kind: ["bank", "mpesa", "cash"],
+      billing_frequency: ["weekly", "monthly", "quarterly", "yearly"],
       document_status: ["open", "partial", "paid", "void"],
       document_type: ["rent_invoice", "credit_note", "bill", "expense"],
       lease_status: ["active", "ended", "terminated"],
