@@ -45,6 +45,16 @@ export async function createUnit(_prev: AuthFormState, formData: FormData): Prom
   const isCommercial = formData.get("isCommercial") === "on";
   if (!unitNumber) return { error: "Give the unit a number or name" };
 
+  const { PLANS, resolvePlanAccess } = await import("@/lib/billing");
+  const [{ data: sub }, { count: unitCount }] = await Promise.all([
+    supabase.from("nodus_subscriptions").select("plan, paid_until").eq("org_id", orgId).maybeSingle(),
+    supabase.from("units").select("id", { count: "exact", head: true }).eq("org_id", orgId),
+  ]);
+  const entitlements = resolvePlanAccess(sub?.plan ?? "free", sub?.paid_until ?? "9999-12-31");
+  if (entitlements.limits.units !== -1 && (unitCount ?? 0) >= entitlements.limits.units) {
+    return { error: `You've reached the ${entitlements.limits.units}-unit limit on the ${PLANS[entitlements.plan].name} plan. Upgrade in Settings → Billing to add more.` };
+  }
+
   const { error } = await supabase.from("units").insert({ org_id: orgId, property_id: propertyId, unit_number: unitNumber, bedrooms, is_commercial: isCommercial });
   if (error) return { error: error.message };
 

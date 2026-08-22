@@ -666,6 +666,88 @@ export type Database = {
           },
         ]
       }
+      nodus_billing_payments: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          cycle: string
+          failed_reason: string | null
+          id: string
+          org_id: string
+          phone: string | null
+          plan: string
+          provider_ref: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          cycle: string
+          failed_reason?: string | null
+          id?: string
+          org_id: string
+          phone?: string | null
+          plan: string
+          provider_ref?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          cycle?: string
+          failed_reason?: string | null
+          id?: string
+          org_id?: string
+          phone?: string | null
+          plan?: string
+          provider_ref?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nodus_billing_payments_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nodus_subscriptions: {
+        Row: {
+          created_at: string
+          org_id: string
+          paid_until: string
+          plan: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          org_id: string
+          paid_until?: string
+          plan?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          org_id?: string
+          paid_until?: string
+          plan?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nodus_subscriptions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       org_memberships: {
         Row: {
           created_at: string
@@ -1350,6 +1432,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      apply_nodus_billing_payment: {
+        Args: { p_payment_id: string }
+        Returns: boolean
       }
       claim_tenant_record: {
         Args: { p_org_slug: string; p_phone: string }
