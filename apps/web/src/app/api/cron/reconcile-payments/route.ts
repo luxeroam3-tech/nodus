@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { reconcileUnconfirmedKopoKopoPayments } from "@nodus/mpesa";
+import { sendPaymentReceiptSms, sendPaymentReceiptEmail } from "@nodus/notify";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -16,6 +17,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const result = await reconcileUnconfirmedKopoKopoPayments(createAdminClient());
+  const admin = createAdminClient();
+  const result = await reconcileUnconfirmedKopoKopoPayments(admin);
+
+  await Promise.all(
+    result.confirmedPaymentIds.map((paymentId) =>
+      Promise.all([sendPaymentReceiptSms(admin, paymentId), sendPaymentReceiptEmail(admin, paymentId)]),
+    ),
+  );
+
   return NextResponse.json(result);
 }

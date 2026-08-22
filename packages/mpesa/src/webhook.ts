@@ -11,7 +11,7 @@ function timingSafeEqualStr(a: string, b: string): boolean {
 export type WebhookOutcome =
   | { kind: "rejected"; reason: string }
   | { kind: "ignored" }
-  | { kind: "processed"; status: string };
+  | { kind: "processed"; status: string; paymentId?: string };
 
 /**
  * Shared webhook pipeline for both gateways. `admin` must be a service-role
@@ -92,7 +92,7 @@ export async function handleGatewayWebhook(req: Request, gatewayId: GatewayId, a
   });
 
   if (error) return { kind: "rejected", reason: error.message };
-  return { kind: "processed", status: event?.status ?? "unknown" };
+  return { kind: "processed", status: event?.status ?? "unknown", paymentId: event?.payment_id ?? undefined };
 }
 
 /**
@@ -105,7 +105,7 @@ export async function handleGatewayWebhook(req: Request, gatewayId: GatewayId, a
 export async function reconcileUnconfirmedKopoKopoPayments(
   admin: SupabaseClient,
   olderThanMinutes = 3,
-): Promise<{ checked: number; confirmed: number; failed: number; stillPending: number; errors: number }> {
+): Promise<{ checked: number; confirmed: number; failed: number; stillPending: number; errors: number; confirmedPaymentIds: string[] }> {
   const cutoff = new Date(Date.now() - olderThanMinutes * 60_000).toISOString();
 
   const { data: rows } = await admin
@@ -119,6 +119,7 @@ export async function reconcileUnconfirmedKopoKopoPayments(
     failed = 0,
     stillPending = 0,
     errors = 0;
+  const confirmedPaymentIds: string[] = [];
 
   for (const row of rows ?? []) {
     try {
@@ -155,7 +156,7 @@ export async function reconcileUnconfirmedKopoKopoPayments(
         await admin.from("payment_events").update({ status: "failed", raw_json: result.raw }).eq("id", row.id).eq("status", "pending");
         failed++;
       } else {
-        await admin.rpc("apply_gateway_payment", {
+        const { data: event } = await admin.rpc("apply_gateway_payment", {
           p_org_id: row.org_id,
           p_gateway_id: "kopokopo",
           p_provider_ref: result.providerRef,
@@ -166,6 +167,7 @@ export async function reconcileUnconfirmedKopoKopoPayments(
           p_account_ref: result.accountRef ?? null,
           p_raw: result.raw,
         });
+        if (event?.payment_id) confirmedPaymentIds.push(event.payment_id);
         confirmed++;
       }
     } catch {
@@ -173,5 +175,5 @@ export async function reconcileUnconfirmedKopoKopoPayments(
     }
   }
 
-  return { checked: (rows ?? []).length, confirmed, failed, stillPending, errors };
+  return { checked: (rows ?? []).length, confirmed, failed, stillPending, errors, confirmedPaymentIds };
 }

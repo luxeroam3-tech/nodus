@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { sendPaymentReceiptSms, sendPaymentReceiptEmail } from "@nodus/notify";
 import type { Database } from "@nodus/shared";
 import type { AuthFormState } from "../(auth)/actions";
 
@@ -101,7 +103,7 @@ export async function issueInvoiceNow(leaseId: string) {
 
 export async function recordManualPayment(documentId: string, amountCents: number, reference: string) {
   const { supabase } = await currentOrgId();
-  const { error } = await supabase.rpc("record_payment", {
+  const { data: payment, error } = await supabase.rpc("record_payment", {
     p_document_id: documentId,
     p_amount_cents: amountCents,
     p_method: "cash",
@@ -110,6 +112,11 @@ export async function recordManualPayment(documentId: string, amountCents: numbe
   });
   if (error) throw new Error(error.message);
   revalidatePath("/payments");
+
+  if (payment?.id) {
+    const admin = createAdminClient();
+    await Promise.all([sendPaymentReceiptSms(admin, payment.id), sendPaymentReceiptEmail(admin, payment.id)]);
+  }
 }
 
 export async function createMaintenanceRequest(_prev: AuthFormState, formData: FormData): Promise<AuthFormState> {

@@ -992,6 +992,150 @@ export type Database = {
           },
         ]
       }
+      receipt_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          org_id: string
+          payment_id: string
+          revoked: boolean
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          org_id: string
+          payment_id: string
+          revoked?: boolean
+          token: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          org_id?: string
+          payment_id?: string
+          revoked?: boolean
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "receipt_tokens_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "receipt_tokens_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sms_log: {
+        Row: {
+          created_at: string
+          document_id: string | null
+          error: string | null
+          id: string
+          kind: string
+          message: string
+          org_id: string
+          payment_id: string | null
+          phone: string
+          provider_ref: string | null
+          sent_date: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          document_id?: string | null
+          error?: string | null
+          id?: string
+          kind: string
+          message?: string
+          org_id: string
+          payment_id?: string | null
+          phone?: string
+          provider_ref?: string | null
+          sent_date?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string | null
+          error?: string | null
+          id?: string
+          kind?: string
+          message?: string
+          org_id?: string
+          payment_id?: string | null
+          phone?: string
+          provider_ref?: string | null
+          sent_date?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sms_log_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sms_log_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sms_log_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sms_settings: {
+        Row: {
+          config_json: string | null
+          created_at: string
+          enabled: boolean
+          org_id: string
+          provider: string
+          updated_at: string | null
+        }
+        Insert: {
+          config_json?: string | null
+          created_at?: string
+          enabled?: boolean
+          org_id: string
+          provider?: string
+          updated_at?: string | null
+        }
+        Update: {
+          config_json?: string | null
+          created_at?: string
+          enabled?: boolean
+          org_id?: string
+          provider?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sms_settings_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           created_at: string

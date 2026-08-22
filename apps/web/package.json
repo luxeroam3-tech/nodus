@@ -16,7 +16,8 @@
     "@nodus/shared": "workspace:*",
     "@supabase/supabase-js": "^2.48.0",
     "@supabase/ssr": "^0.12.4",
-    "server-only": "^0.0.1"
+    "server-only": "^0.0.1",
+    "@nodus/notify": "workspace:*"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
