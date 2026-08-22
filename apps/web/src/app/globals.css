@@ -207,6 +207,83 @@ select {
   display: none;
 }
 
+/* ---------- Dashboard hero / ring / attention list ---------- */
+.hero-card {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-ink) 100%);
+  border-radius: 18px;
+  padding: 22px 24px;
+  color: #fff;
+  box-shadow: 0 10px 30px rgba(15, 118, 110, 0.28);
+}
+
+.hero-card p.hero-label {
+  font-size: 13px;
+  font-weight: 500;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.hero-card p.hero-value {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 700;
+  margin: 6px 0 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hero-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 0.5px solid rgba(255, 255, 255, 0.28);
+  color: #fff;
+  text-decoration: none;
+}
+
+.ring-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ring-caption {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: 2px 0 0;
+}
+
+.ring-value {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.attention-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 18px;
+  border-top: 0.5px solid var(--border);
+}
+
+.avatar-chip {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
 /* ---------- Responsive page primitives ---------- */
 .page-header {
   display: flex;
@@ -230,6 +307,13 @@ select {
   gap: 16px;
 }
 
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
 .row-flex {
   display: flex;
   justify-content: space-between;
@@ -239,7 +323,8 @@ select {
 }
 
 @media (max-width: 860px) {
-  .content-grid {
+  .content-grid,
+  .hero-grid {
     grid-template-columns: 1fr;
   }
 
