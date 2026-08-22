@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PayButton } from "./pay-button";
 
@@ -27,6 +28,13 @@ export default async function TenantPortalPage({ params }: { params: Promise<{ o
     .eq("tenant_id", tenant.id)
     .eq("status", "active")
     .maybeSingle();
+
+  const [{ data: maintenanceRequests }, { data: checklists }] = await Promise.all([
+    supabase.from("maintenance_requests").select("id, title, status, priority, created_at").eq("tenant_id", tenant.id).order("created_at", { ascending: false }).limit(5),
+    lease
+      ? supabase.from("move_checklists").select("id, type, status, move_checklist_items(id, label, checked)").eq("lease_id", lease.id)
+      : Promise.resolve({ data: [] as any[] }),
+  ]);
 
   const { data: openDocs } = await supabase
     .from("documents")
@@ -80,6 +88,56 @@ export default async function TenantPortalPage({ params }: { params: Promise<{ o
           <p style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>{formatKES(lease.rent_amount_cents)}</p>
         </div>
       )}
+
+      <Link
+        href={`/portal/${orgSlug}/maintenance/new`}
+        className="card"
+        style={{ display: "block", padding: "14px 18px", marginBottom: 16, textDecoration: "none", color: "inherit" }}
+      >
+        <p style={{ fontSize: 13.5, fontWeight: 600, margin: 0 }}>Report an issue</p>
+        <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "2px 0 0" }}>Leaking tap, broken lock, anything that needs fixing.</p>
+      </Link>
+
+      {(maintenanceRequests ?? []).length > 0 && (
+        <div className="card" style={{ overflow: "hidden", marginBottom: 16 }}>
+          <div style={{ padding: "14px 18px 10px" }}>
+            <h3 style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 600, margin: 0 }}>Your requests</h3>
+          </div>
+          {(maintenanceRequests ?? []).map((r) => (
+            <div key={r.id} style={{ display: "flex", justifyContent: "space-between", padding: "10px 18px", borderTop: "0.5px solid var(--border)" }}>
+              <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>{r.title}</p>
+              <span className={`pill ${r.status === "resolved" || r.status === "closed" ? "success" : r.priority === "urgent" ? "danger" : "warning"}`}>
+                {r.status === "in_progress" ? "In progress" : r.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {(checklists ?? []).map((c: any) => {
+        const items = c.move_checklist_items ?? [];
+        const checkedCount = items.filter((i: any) => i.checked).length;
+        return (
+          <div key={c.id} className="card" style={{ padding: "14px 18px", marginBottom: 16 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <p style={{ fontSize: 13.5, fontWeight: 600, margin: 0 }}>{c.type === "move_in" ? "Move-in checklist" : "Move-out checklist"}</p>
+              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                {checkedCount} / {items.length}
+              </span>
+            </div>
+            <div style={{ height: 5, background: "var(--surface-3)", borderRadius: 100, overflow: "hidden" }}>
+              <div
+                style={{
+                  height: "100%",
+                  width: `${items.length ? (checkedCount / items.length) * 100 : 0}%`,
+                  background: c.status === "completed" ? "var(--success)" : "var(--accent)",
+                  borderRadius: 100,
+                }}
+              />
+            </div>
+          </div>
+        );
+      })}
 
       <div className="card" style={{ overflow: "hidden" }}>
         <div style={{ padding: "14px 18px 10px" }}>

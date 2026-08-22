@@ -2,6 +2,9 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import type { Database } from "@nodus/shared";
+
+type MaintenancePriority = Database["public"]["Enums"]["maintenance_priority"];
 
 export type PortalFormState = { error?: string } | undefined;
 
@@ -46,4 +49,22 @@ export async function portalSignOut(orgSlug: string) {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect(`/portal/${orgSlug}/login`);
+}
+
+export async function portalCreateMaintenanceRequest(orgSlug: string, _prev: PortalFormState, formData: FormData): Promise<PortalFormState> {
+  const title = String(formData.get("title") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim() || null;
+  const priority = String(formData.get("priority") ?? "normal") as MaintenancePriority;
+  const orgId = String(formData.get("orgId") ?? "");
+  const unitId = String(formData.get("unitId") ?? "");
+  const tenantId = String(formData.get("tenantId") ?? "");
+  if (!title) return { error: "Describe the issue" };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("maintenance_requests")
+    .insert({ org_id: orgId, unit_id: unitId, tenant_id: tenantId, title, description, priority });
+  if (error) return { error: error.message };
+
+  redirect(`/portal/${orgSlug}`);
 }

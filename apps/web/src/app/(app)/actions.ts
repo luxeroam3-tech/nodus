@@ -7,6 +7,8 @@ import type { Database } from "@nodus/shared";
 import type { AuthFormState } from "../(auth)/actions";
 
 type PropertyType = Database["public"]["Enums"]["property_type"];
+type MaintenancePriority = Database["public"]["Enums"]["maintenance_priority"];
+type MaintenanceStatus = Database["public"]["Enums"]["maintenance_status"];
 
 async function currentOrgId() {
   const supabase = await createClient();
@@ -108,4 +110,34 @@ export async function recordManualPayment(documentId: string, amountCents: numbe
   });
   if (error) throw new Error(error.message);
   revalidatePath("/payments");
+}
+
+export async function createMaintenanceRequest(_prev: AuthFormState, formData: FormData): Promise<AuthFormState> {
+  const { supabase, orgId } = await currentOrgId();
+  const unitId = String(formData.get("unitId") ?? "");
+  const title = String(formData.get("title") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim() || null;
+  const priority = String(formData.get("priority") ?? "normal") as MaintenancePriority;
+  if (!unitId || !title) return { error: "Pick a unit and describe the issue" };
+
+  const { error } = await supabase.from("maintenance_requests").insert({ org_id: orgId, unit_id: unitId, title, description, priority });
+  if (error) return { error: error.message };
+
+  revalidatePath("/maintenance");
+  redirect("/maintenance");
+}
+
+export async function updateMaintenanceStatus(requestId: string, status: MaintenanceStatus, assignToSelf: boolean) {
+  const { supabase } = await currentOrgId();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const patch: Database["public"]["Tables"]["maintenance_requests"]["Update"] = { status };
+  if (status === "resolved" || status === "closed") patch.resolved_at = new Date().toISOString();
+  if (assignToSelf && user) patch.assigned_to_user_id = user.id;
+
+  const { error } = await supabase.from("maintenance_requests").update(patch).eq("id", requestId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/maintenance");
 }

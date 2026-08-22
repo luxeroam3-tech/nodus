@@ -497,6 +497,172 @@ export type Database = {
           },
         ]
       }
+      maintenance_requests: {
+        Row: {
+          assigned_to_user_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          org_id: string
+          priority: Database["public"]["Enums"]["maintenance_priority"]
+          raised_by_user_id: string | null
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["maintenance_status"]
+          tenant_id: string | null
+          title: string
+          unit_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to_user_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          org_id: string
+          priority?: Database["public"]["Enums"]["maintenance_priority"]
+          raised_by_user_id?: string | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["maintenance_status"]
+          tenant_id?: string | null
+          title: string
+          unit_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to_user_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          org_id?: string
+          priority?: Database["public"]["Enums"]["maintenance_priority"]
+          raised_by_user_id?: string | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["maintenance_status"]
+          tenant_id?: string | null
+          title?: string
+          unit_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_requests_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_requests_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      move_checklist_items: {
+        Row: {
+          checked: boolean
+          checklist_id: string
+          created_at: string
+          id: string
+          label: string
+          notes: string | null
+          org_id: string
+          photo_url: string | null
+        }
+        Insert: {
+          checked?: boolean
+          checklist_id: string
+          created_at?: string
+          id?: string
+          label: string
+          notes?: string | null
+          org_id: string
+          photo_url?: string | null
+        }
+        Update: {
+          checked?: boolean
+          checklist_id?: string
+          created_at?: string
+          id?: string
+          label?: string
+          notes?: string | null
+          org_id?: string
+          photo_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "move_checklist_items_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "move_checklists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "move_checklist_items_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      move_checklists: {
+        Row: {
+          completed_at: string | null
+          completed_by_user_id: string | null
+          created_at: string
+          id: string
+          lease_id: string
+          org_id: string
+          status: Database["public"]["Enums"]["checklist_status"]
+          type: Database["public"]["Enums"]["checklist_type"]
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by_user_id?: string | null
+          created_at?: string
+          id?: string
+          lease_id: string
+          org_id: string
+          status?: Database["public"]["Enums"]["checklist_status"]
+          type: Database["public"]["Enums"]["checklist_type"]
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by_user_id?: string | null
+          created_at?: string
+          id?: string
+          lease_id?: string
+          org_id?: string
+          status?: Database["public"]["Enums"]["checklist_status"]
+          type?: Database["public"]["Enums"]["checklist_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "move_checklists_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "leases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "move_checklists_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       org_memberships: {
         Row: {
           created_at: string
@@ -1056,6 +1222,48 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      complete_move_checklist: {
+        Args: { p_checklist_id: string }
+        Returns: {
+          completed_at: string | null
+          completed_by_user_id: string | null
+          created_at: string
+          id: string
+          lease_id: string
+          org_id: string
+          status: Database["public"]["Enums"]["checklist_status"]
+          type: Database["public"]["Enums"]["checklist_type"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "move_checklists"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      create_move_checklist: {
+        Args: {
+          p_lease_id: string
+          p_org_id: string
+          p_type: Database["public"]["Enums"]["checklist_type"]
+        }
+        Returns: {
+          completed_at: string | null
+          completed_by_user_id: string | null
+          created_at: string
+          id: string
+          lease_id: string
+          org_id: string
+          status: Database["public"]["Enums"]["checklist_status"]
+          type: Database["public"]["Enums"]["checklist_type"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "move_checklists"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       create_organization: {
         Args: {
           org_name: string
@@ -1276,9 +1484,13 @@ export type Database = {
       account_type: "asset" | "liability" | "equity" | "income" | "expense"
       bank_account_kind: "bank" | "mpesa" | "cash"
       billing_frequency: "weekly" | "monthly" | "quarterly" | "yearly"
+      checklist_status: "pending" | "completed"
+      checklist_type: "move_in" | "move_out"
       document_status: "open" | "partial" | "paid" | "void"
       document_type: "rent_invoice" | "credit_note" | "bill" | "expense"
       lease_status: "active" | "ended" | "terminated"
+      maintenance_priority: "normal" | "urgent"
+      maintenance_status: "open" | "in_progress" | "resolved" | "closed"
       org_role: "owner" | "manager" | "accountant" | "caretaker"
       org_type: "individual" | "agency"
       payment_direction: "in" | "out"
@@ -1421,9 +1633,13 @@ export const Constants = {
       account_type: ["asset", "liability", "equity", "income", "expense"],
       bank_account_kind: ["bank", "mpesa", "cash"],
       billing_frequency: ["weekly", "monthly", "quarterly", "yearly"],
+      checklist_status: ["pending", "completed"],
+      checklist_type: ["move_in", "move_out"],
       document_status: ["open", "partial", "paid", "void"],
       document_type: ["rent_invoice", "credit_note", "bill", "expense"],
       lease_status: ["active", "ended", "terminated"],
+      maintenance_priority: ["normal", "urgent"],
+      maintenance_status: ["open", "in_progress", "resolved", "closed"],
       org_role: ["owner", "manager", "accountant", "caretaker"],
       org_type: ["individual", "agency"],
       payment_direction: ["in", "out"],
