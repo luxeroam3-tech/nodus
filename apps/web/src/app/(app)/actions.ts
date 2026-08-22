@@ -148,3 +148,37 @@ export async function updateMaintenanceStatus(requestId: string, status: Mainten
   if (error) throw new Error(error.message);
   revalidatePath("/maintenance");
 }
+
+export async function updateOrgProfile(_prev: AuthFormState, formData: FormData): Promise<AuthFormState> {
+  const { supabase, orgId } = await currentOrgId();
+  const name = String(formData.get("name") ?? "").trim();
+  const kraPin = String(formData.get("kraPin") ?? "").trim() || null;
+  const vatRegistered = formData.get("vatRegistered") === "on";
+  if (!name) return { error: "Organization name is required" };
+
+  const { error } = await supabase.from("organizations").update({ name, kra_pin: kraPin, vat_registered: vatRegistered }).eq("id", orgId);
+  if (error) return { error: error.message };
+
+  revalidatePath("/settings");
+  return undefined;
+}
+
+export async function updateSmsSettings(_prev: AuthFormState, formData: FormData): Promise<AuthFormState> {
+  const { supabase, orgId } = await currentOrgId();
+  const enabled = formData.get("enabled") === "on";
+  const apiKey = String(formData.get("apiKey") ?? "").trim();
+  const partnerId = String(formData.get("partnerId") ?? "").trim();
+  const senderId = String(formData.get("senderId") ?? "").trim();
+
+  const { encryptConfig } = await import("@nodus/mpesa");
+  const hasNewCreds = apiKey && partnerId && senderId;
+
+  const patch: Database["public"]["Tables"]["sms_settings"]["Insert"] = { org_id: orgId, enabled, provider: "advanta" };
+  if (hasNewCreds) patch.config_json = encryptConfig({ apiKey, partnerId, senderId });
+
+  const { error } = await supabase.from("sms_settings").upsert(patch, { onConflict: "org_id" });
+  if (error) return { error: error.message };
+
+  revalidatePath("/settings");
+  return undefined;
+}

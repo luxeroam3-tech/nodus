@@ -72,7 +72,7 @@ export default async function OverviewPage() {
         <div className="hero-card">
           <p className="hero-label">Collected this month</p>
           <p className="hero-value">{fmtKES(collectedThisMonth)}</p>
-          <Link href="/payments" className="hero-btn">
+          <Link href="/reports" className="hero-btn">
             View report
           </Link>
         </div>
