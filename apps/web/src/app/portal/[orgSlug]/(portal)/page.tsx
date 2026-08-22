@@ -147,14 +147,19 @@ export default async function TenantPortalPage({ params }: { params: Promise<{ o
           <div style={{ padding: "0 18px 16px", color: "var(--text-muted)", fontSize: 13 }}>No payments yet.</div>
         ) : (
           (paymentHistory ?? []).map((p) => (
-            <div key={p.id} style={{ display: "flex", justifyContent: "space-between", padding: "10px 18px", borderTop: "0.5px solid var(--border)" }}>
+            <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 18px", borderTop: "0.5px solid var(--border)", gap: 10 }}>
               <div>
                 <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>{p.method}</p>
                 <p style={{ fontSize: 11.5, color: "var(--text-muted)", margin: "1px 0 0" }}>
                   {p.reference} · {new Date(p.date).toLocaleDateString("en-KE", { day: "numeric", month: "short" })}
                 </p>
               </div>
-              <span style={{ fontSize: 13, fontWeight: 600 }}>{formatKES(p.amount_cents)}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                <span style={{ fontSize: 13, fontWeight: 600 }}>{formatKES(p.amount_cents)}</span>
+                <a href={`/api/receipts/by-payment/${p.id}`} target="_blank" rel="noopener noreferrer" className="btn" style={{ fontSize: 11.5, padding: "4px 9px", textDecoration: "none" }}>
+                  Receipt
+                </a>
+              </div>
             </div>
           ))
         )}

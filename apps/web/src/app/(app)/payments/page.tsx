@@ -53,14 +53,19 @@ export default async function PaymentsPage() {
             <div style={{ padding: "0 18px 18px", color: "var(--text-muted)", fontSize: 13 }}>No payments recorded yet.</div>
           ) : (
             (payments ?? []).map((p: any) => (
-              <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "11px 18px", borderTop: "0.5px solid var(--border)" }}>
+              <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "11px 18px", borderTop: "0.5px solid var(--border)", gap: 10, flexWrap: "wrap" }}>
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>{formatKES(p.amount_cents)}</p>
                   <p style={{ fontSize: 11.5, color: "var(--text-muted)", margin: "2px 0 0" }}>
                     {p.documents?.number} · {p.reference} · {new Date(p.date).toLocaleDateString("en-KE", { day: "numeric", month: "short" })}
                   </p>
                 </div>
-                <span className="pill success">{p.method}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span className="pill success">{p.method}</span>
+                  <a href={`/api/receipts/by-payment/${p.id}`} target="_blank" rel="noopener noreferrer" className="btn" style={{ fontSize: 12, padding: "5px 10px", textDecoration: "none" }}>
+                    Receipt
+                  </a>
+                </div>
               </div>
             ))
           )}
