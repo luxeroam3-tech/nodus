@@ -16,7 +16,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
       <p style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 600, margin: "0 0 4px" }}>{property.name}</p>
       <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "0 0 22px" }}>{property.address ?? property.type}</p>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 16 }}>
+      <div className="content-grid">
         <div className="card" style={{ overflow: "hidden" }}>
           <div style={{ padding: "16px 18px 12px" }}>
             <h3 style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 600, margin: 0 }}>Units</h3>

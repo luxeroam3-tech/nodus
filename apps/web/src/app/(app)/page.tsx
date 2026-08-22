@@ -38,7 +38,7 @@ export default async function OverviewPage() {
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22 }}>
+      <div className="page-header">
         <div>
           <p style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 600, margin: 0 }}>Overview</p>
           <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "3px 0 0" }}>
@@ -47,14 +47,14 @@ export default async function OverviewPage() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 22 }}>
+      <div className="stat-grid">
         <StatCard label="Collected this month" value={formatKES(collectedThisMonth)} />
         <StatCard label="Outstanding arrears" value={formatKES(arrearsCents)} tone={arrearsCents > 0 ? "danger" : undefined} />
         <StatCard label="Occupancy" value={totalUnits > 0 ? `${Math.round((occupied / totalUnits) * 100)}%` : "—"} sub={`${occupied} of ${totalUnits} units`} />
         <StatCard label="Open invoices" value={String((openDocs ?? []).length)} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 16 }}>
+      <div className="content-grid">
         <div className="card" style={{ overflow: "hidden" }}>
           <div style={{ padding: "16px 18px 12px" }}>
             <h3 style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 600, margin: 0 }}>Properties</h3>

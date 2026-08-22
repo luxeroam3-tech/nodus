@@ -20,7 +20,7 @@ export default async function PaymentsPage() {
     <div>
       <p style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 600, margin: "0 0 18px" }}>Payments</p>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16 }}>
+      <div style={{ display: "grid", gap: 16 }}>
         <div className="card" style={{ overflow: "hidden" }}>
           <div style={{ padding: "16px 18px 12px" }}>
             <h3 style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 600, margin: 0 }}>Open invoices</h3>
@@ -31,7 +31,7 @@ export default async function PaymentsPage() {
             (openDocs ?? []).map((d: any) => {
               const balance = d.total_cents - d.paid_cents;
               return (
-                <div key={d.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 18px", borderTop: "0.5px solid var(--border)" }}>
+                <div key={d.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 18px", borderTop: "0.5px solid var(--border)", flexWrap: "wrap", gap: 10 }}>
                   <div>
                     <p style={{ fontSize: 13.5, fontWeight: 600, margin: 0 }}>
                       {d.tenants?.full_name} · {d.number}

@@ -14,7 +14,7 @@ export default async function MaintenancePage() {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+      <div className="page-header">
         <p style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 600, margin: 0 }}>Maintenance</p>
         <Link href="/maintenance/new" className="btn btn-primary" style={{ textDecoration: "none" }}>
           Report an issue

@@ -15,7 +15,7 @@ export default async function LeasesPage() {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+      <div className="page-header">
         <p style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 600, margin: 0 }}>Leases</p>
         <Link href="/leases/new" className="btn btn-primary" style={{ textDecoration: "none" }}>
           New lease
@@ -27,7 +27,7 @@ export default async function LeasesPage() {
           <div style={{ padding: 28, textAlign: "center", color: "var(--text-muted)", fontSize: 13.5 }}>No leases yet.</div>
         ) : (
           (leases ?? []).map((l: any) => (
-            <div key={l.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "13px 18px", borderTop: "0.5px solid var(--border)" }}>
+            <div key={l.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "13px 18px", borderTop: "0.5px solid var(--border)", flexWrap: "wrap", gap: 10 }}>
               <div>
                 <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>
                   {l.tenants?.full_name} · {l.units?.properties?.name} {l.units?.unit_number}

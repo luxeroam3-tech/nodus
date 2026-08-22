@@ -25,7 +25,7 @@ export function RecordPaymentButton({ documentId, amountCents }: { documentId: s
         placeholder="Reference (e.g. cash, cheque no.)"
         value={reference}
         onChange={(e) => setReference(e.target.value)}
-        style={{ width: 160, padding: "6px 10px", fontSize: 12.5 }}
+        style={{ width: 160, maxWidth: "45vw", padding: "6px 10px", fontSize: 12.5 }}
       />
       <button
         className="btn btn-primary"

@@ -23,7 +23,7 @@ export function StatusControls({ requestId, status }: { requestId: string; statu
   if (actions.length === 0) return <span className="pill neutral">{status}</span>;
 
   return (
-    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+    <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
       <span className={`pill ${status === "in_progress" ? "warning" : "neutral"}`}>{status}</span>
       {actions.map((a) => (
         <button
