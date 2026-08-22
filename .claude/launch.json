@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "nodus-web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@nodus/web", "dev"],
+      "port": 3000
+    }
+  ]
+}

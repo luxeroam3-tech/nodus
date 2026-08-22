@@ -535,6 +535,7 @@ export type Database = {
           id: string
           kra_pin: string | null
           name: string
+          slug: string
           type: Database["public"]["Enums"]["org_type"]
           updated_at: string | null
           vat_registered: boolean
@@ -544,6 +545,7 @@ export type Database = {
           id?: string
           kra_pin?: string | null
           name: string
+          slug: string
           type?: Database["public"]["Enums"]["org_type"]
           updated_at?: string | null
           vat_registered?: boolean
@@ -553,6 +555,7 @@ export type Database = {
           id?: string
           kra_pin?: string | null
           name?: string
+          slug?: string
           type?: Database["public"]["Enums"]["org_type"]
           updated_at?: string | null
           vat_registered?: boolean
@@ -1034,6 +1037,25 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      claim_tenant_record: {
+        Args: { p_org_slug: string; p_phone: string }
+        Returns: {
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          org_id: string
+          phone: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tenants"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       create_organization: {
         Args: {
           org_name: string
@@ -1044,6 +1066,7 @@ export type Database = {
           id: string
           kra_pin: string | null
           name: string
+          slug: string
           type: Database["public"]["Enums"]["org_type"]
           updated_at: string | null
           vat_registered: boolean
@@ -1098,6 +1121,14 @@ export type Database = {
       get_account_id: {
         Args: { p_code: string; p_org_id: string }
         Returns: string
+      }
+      get_org_public_info: {
+        Args: { p_slug: string }
+        Returns: {
+          id: string
+          name: string
+          slug: string
+        }[]
       }
       issue_rent_invoice: {
         Args: {
@@ -1229,6 +1260,7 @@ export type Database = {
         Returns: string
       }
       seed_chart_of_accounts: { Args: { p_org_id: string }; Returns: undefined }
+      slugify: { Args: { p_text: string }; Returns: string }
       user_org_ids: { Args: never; Returns: string[] }
       user_org_ids_financial: { Args: never; Returns: string[] }
       user_org_ids_with_role: {
@@ -1237,6 +1269,8 @@ export type Database = {
       }
       user_tenant_document_ids: { Args: never; Returns: string[] }
       user_tenant_ids: { Args: never; Returns: string[] }
+      user_tenant_property_ids: { Args: never; Returns: string[] }
+      user_tenant_unit_ids: { Args: never; Returns: string[] }
     }
     Enums: {
       account_type: "asset" | "liability" | "equity" | "income" | "expense"
