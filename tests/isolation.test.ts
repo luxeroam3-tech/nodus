@@ -19,15 +19,13 @@ describe("Phase 1 multi-tenancy isolation", () => {
   let propertyA: any, unitA: any, tenantA: any, leaseA: any;
 
   beforeAll(async () => {
-    [ownerA, managerA, accountantA, caretakerA, ownerB, tenantUserA, outsider] = await Promise.all([
-      createTestUser(),
-      createTestUser(),
-      createTestUser(),
-      createTestUser(),
-      createTestUser(),
-      createTestUser(),
-      createTestUser(),
-    ]);
+    ownerA = await createTestUser();
+    managerA = await createTestUser();
+    accountantA = await createTestUser();
+    caretakerA = await createTestUser();
+    ownerB = await createTestUser();
+    tenantUserA = await createTestUser();
+    outsider = await createTestUser();
 
     orgA = await createOrgAsOwner(ownerA, "Kilimani Heights Ltd");
     orgB = await createOrgAsOwner(ownerB, "Lavington Court Ltd");
@@ -48,9 +46,9 @@ describe("Phase 1 multi-tenancy isolation", () => {
     await adminClient.from("units").delete().eq("org_id", orgA.id);
     await adminClient.from("properties").delete().eq("org_id", orgA.id);
     await adminClient.from("organizations").delete().in("id", [orgA.id, orgB.id]);
-    await Promise.all(
-      [ownerA, managerA, accountantA, caretakerA, ownerB, tenantUserA, outsider].map((u) => deleteTestUser(u.id)),
-    );
+    for (const u of [ownerA, managerA, accountantA, caretakerA, ownerB, tenantUserA, outsider]) {
+      await deleteTestUser(u.id);
+    }
   }, 30_000);
 
   // ---------- Organization bootstrap ----------

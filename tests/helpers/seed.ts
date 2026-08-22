@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { adminClient, supabaseUrl } from "./clients";
 
@@ -5,10 +6,8 @@ const anonKey = process.env.SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABAS
 
 export type TestUser = { id: string; email: string; password: string; client: SupabaseClient };
 
-let counter = 0;
 function uniqueEmail(): string {
-  counter += 1;
-  return `nodus-test-${Date.now()}-${counter}@example.com`;
+  return `nodus-test-${randomUUID()}@example.com`;
 }
 
 /** Creates a confirmed auth user and returns a signed-in anon-key client for them. */
