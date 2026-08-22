@@ -385,3 +385,63 @@ export async function toggleBankTransactionReconciled(transactionId: string, rec
   if (error) throw new Error(error.message);
   revalidatePath("/banking");
 }
+
+export async function updateTenant(_prev: AuthFormState, formData: FormData): Promise<AuthFormState> {
+  const { supabase } = await currentOrgId();
+  const tenantId = String(formData.get("tenantId") ?? "");
+  const fullName = String(formData.get("fullName") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim() || null;
+  const email = String(formData.get("email") ?? "").trim() || null;
+  if (!tenantId || !fullName) return { error: "Give the tenant a name" };
+
+  const { error } = await supabase.from("tenants").update({ full_name: fullName, phone, email }).eq("id", tenantId);
+  if (error) return { error: error.message };
+
+  revalidatePath(`/tenants/${tenantId}`);
+  revalidatePath("/tenants");
+  return undefined;
+}
+
+export async function collectDeposit(_prev: AuthFormState, formData: FormData): Promise<AuthFormState> {
+  const { supabase } = await currentOrgId();
+  const leaseId = String(formData.get("leaseId") ?? "");
+  const amountKes = Number(formData.get("amountKes") ?? 0);
+  const method = String(formData.get("method") ?? "cash") as Database["public"]["Enums"]["payment_method"];
+  const date = String(formData.get("date") ?? new Date().toISOString().slice(0, 10));
+  if (!leaseId || !amountKes) return { error: "Fill in every field" };
+
+  const { error } = await supabase.rpc("collect_deposit", {
+    p_lease_id: leaseId,
+    p_amount_cents: Math.round(amountKes * 100),
+    p_method: method,
+    p_date: date,
+  });
+  if (error) return { error: error.message };
+
+  revalidatePath("/deposits");
+  return undefined;
+}
+
+export async function refundDeposit(_prev: AuthFormState, formData: FormData): Promise<AuthFormState> {
+  const { supabase } = await currentOrgId();
+  const depositId = String(formData.get("depositId") ?? "");
+  const refundKes = Number(formData.get("refundKes") ?? 0);
+  const forfeitKes = Number(formData.get("forfeitKes") ?? 0);
+  const method = String(formData.get("method") ?? "cash") as Database["public"]["Enums"]["payment_method"];
+  const date = String(formData.get("date") ?? new Date().toISOString().slice(0, 10));
+  const notes = String(formData.get("notes") ?? "").trim();
+  if (!depositId || (!refundKes && !forfeitKes)) return { error: "Enter a refund and/or forfeit amount" };
+
+  const { error } = await supabase.rpc("refund_deposit", {
+    p_deposit_id: depositId,
+    p_refund_cents: Math.round(refundKes * 100),
+    p_forfeit_cents: Math.round(forfeitKes * 100),
+    p_method: method,
+    p_date: date,
+    p_notes: notes,
+  });
+  if (error) return { error: error.message };
+
+  revalidatePath("/deposits");
+  return undefined;
+}

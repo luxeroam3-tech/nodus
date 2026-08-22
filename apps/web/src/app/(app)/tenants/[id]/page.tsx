@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { PageHeader, TableCard, Th, Td, Money, StatusPill, EmptyState } from "@/components/ui";
+import { TableCard, Th, Td, Money, StatusPill, EmptyState } from "@/components/ui";
+import { EditTenantHeader } from "./edit-tenant-header";
+import { DepositCard } from "./deposit-card";
 
 export default async function TenantDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -31,22 +33,24 @@ export default async function TenantDetailPage({ params }: { params: Promise<{ i
   const leaseIds = (leases ?? []).map((l) => l.id);
   const docIds = (docs ?? []).map((d) => d.id);
 
-  const [{ data: payments }, { data: checklists }] = await Promise.all([
+  const [{ data: payments }, { data: checklists }, { data: deposits }] = await Promise.all([
     docIds.length
       ? supabase.from("payments").select("id, amount_cents, method, reference, date, document_id").in("document_id", docIds).order("date", { ascending: false })
       : Promise.resolve({ data: [] as any[] }),
     leaseIds.length
       ? supabase.from("move_checklists").select("id, type, status, lease_id, move_checklist_items(id, checked)").in("lease_id", leaseIds)
       : Promise.resolve({ data: [] as any[] }),
+    leaseIds.length ? supabase.from("deposits").select("*").in("lease_id", leaseIds) : Promise.resolve({ data: [] as any[] }),
   ]);
 
   const balanceCents = (docs ?? []).reduce((s, d) => s + (d.total_cents - d.paid_cents - d.credited_cents), 0);
   const docNumberById = new Map((docs ?? []).map((d) => [d.id, d.number]));
   const activeLease = (leases ?? []).find((l) => l.status === "active");
+  const activeDeposit = activeLease ? (deposits ?? []).find((d) => d.lease_id === activeLease.id) : undefined;
 
   return (
     <div>
-      <PageHeader title={tenant.full_name} subtitle={tenant.phone ?? tenant.email ?? "No contact on file"} />
+      <EditTenantHeader tenant={{ id: tenant.id, full_name: tenant.full_name, phone: tenant.phone, email: tenant.email }} />
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3.5 mb-6">
         <div className="card px-[18px] py-4">
@@ -202,6 +206,10 @@ export default async function TenantDetailPage({ params }: { params: Promise<{ i
             ))
           )}
         </div>
+
+        {activeLease && (
+          <DepositCard leaseId={activeLease.id} depositAmountCents={activeLease.deposit_amount_cents} deposit={activeDeposit} />
+        )}
 
         <div className="card overflow-hidden">
           <div className="px-[18px] pt-4 pb-3">

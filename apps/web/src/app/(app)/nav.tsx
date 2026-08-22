@@ -91,6 +91,16 @@ const NAV_GROUPS = [
         ),
       },
       {
+        href: "/deposits",
+        label: "Deposits",
+        icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <rect x="4" y="4" width="16" height="16" rx="2" />
+            <path d="M9 12h6M12 9v6" />
+          </svg>
+        ),
+      },
+      {
         href: "/reports",
         label: "Reports",
         icon: (

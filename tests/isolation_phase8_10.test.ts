@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { adminClient } from "./helpers/clients";
-import { createTestUser, deleteTestUser, createOrgAsOwner, createProperty, type TestUser } from "./helpers/seed";
+import { createTestUser, deleteTestUser, createOrgAsOwner, createProperty, createUnit, createTenant, createLease, type TestUser } from "./helpers/seed";
 
 // Cross-org isolation for everything added since Phase 1: SMS, payment
 // gateways, banking, receipts, and Nodus's own subscription billing. Same
@@ -9,7 +9,7 @@ import { createTestUser, deleteTestUser, createOrgAsOwner, createProperty, type 
 describe("Phase 8-9 multi-tenancy isolation", () => {
   let ownerA: TestUser, ownerB: TestUser;
   let orgA: { id: string }, orgB: { id: string };
-  let bankAccountA: any, paymentGatewayA: any, smsSettingsA: any;
+  let bankAccountA: any, paymentGatewayA: any, smsSettingsA: any, depositA: any;
 
   beforeAll(async () => {
     ownerA = await createTestUser();
@@ -29,9 +29,21 @@ describe("Phase 8-9 multi-tenancy isolation", () => {
 
     const { data: sms } = await adminClient.from("sms_settings").insert({ org_id: orgA.id, enabled: true, provider: "advanta" }).select().single();
     smsSettingsA = sms;
+
+    const propertyA = await createProperty(orgA.id, "Riverside Block A");
+    const unitA = await createUnit(orgA.id, propertyA.id, "R1");
+    const tenantA = await createTenant(orgA.id, "Isolation Test Tenant");
+    const leaseA = await createLease(orgA.id, unitA.id, tenantA.id);
+    const { data: deposit } = await adminClient.from("deposits").insert({ org_id: orgA.id, lease_id: leaseA.id, amount_cents: 5000000, method: "cash" }).select().single();
+    depositA = deposit;
   }, 30_000);
 
   afterAll(async () => {
+    await adminClient.from("deposits").delete().eq("org_id", orgA.id);
+    await adminClient.from("leases").delete().eq("org_id", orgA.id);
+    await adminClient.from("tenants").delete().eq("org_id", orgA.id);
+    await adminClient.from("units").delete().eq("org_id", orgA.id);
+    await adminClient.from("properties").delete().eq("org_id", orgA.id);
     await adminClient.from("bank_accounts").delete().eq("org_id", orgA.id);
     await adminClient.from("payment_gateways").delete().eq("org_id", orgA.id);
     await adminClient.from("sms_settings").delete().eq("org_id", orgA.id);
@@ -70,6 +82,28 @@ describe("Phase 8-9 multi-tenancy isolation", () => {
   it("owner B cannot see org A's subscription", async () => {
     const { data } = await ownerB.client.from("nodus_subscriptions").select("*").eq("org_id", orgA.id);
     expect(data).toEqual([]);
+  });
+
+  it("owner A can see their own deposit", async () => {
+    const { data } = await ownerA.client.from("deposits").select("*").eq("id", depositA.id);
+    expect(data).toHaveLength(1);
+  });
+
+  it("owner B cannot see org A's deposit", async () => {
+    const { data } = await ownerB.client.from("deposits").select("*").eq("org_id", orgA.id);
+    expect(data).toEqual([]);
+  });
+
+  it("owner B cannot call refund_deposit on org A's deposit", async () => {
+    const { error } = await ownerB.client.rpc("refund_deposit", {
+      p_deposit_id: depositA.id,
+      p_refund_cents: 5000000,
+      p_forfeit_cents: 0,
+      p_method: "cash",
+      p_date: "2026-01-01",
+      p_notes: "",
+    });
+    expect(error).toBeTruthy();
   });
 
   it("owner B cannot insert a bank account into org A", async () => {

@@ -209,6 +209,89 @@ export type Database = {
           },
         ]
       }
+      deposits: {
+        Row: {
+          amount_cents: number
+          collected_date: string
+          collection_journal_entry_id: string | null
+          created_at: string
+          forfeited_cents: number
+          id: string
+          lease_id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          org_id: string
+          refund_date: string | null
+          refund_journal_entry_id: string | null
+          refund_notes: string | null
+          refunded_cents: number
+          status: Database["public"]["Enums"]["deposit_status"]
+          updated_at: string | null
+        }
+        Insert: {
+          amount_cents: number
+          collected_date?: string
+          collection_journal_entry_id?: string | null
+          created_at?: string
+          forfeited_cents?: number
+          id?: string
+          lease_id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          org_id: string
+          refund_date?: string | null
+          refund_journal_entry_id?: string | null
+          refund_notes?: string | null
+          refunded_cents?: number
+          status?: Database["public"]["Enums"]["deposit_status"]
+          updated_at?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          collected_date?: string
+          collection_journal_entry_id?: string | null
+          created_at?: string
+          forfeited_cents?: number
+          id?: string
+          lease_id?: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          org_id?: string
+          refund_date?: string | null
+          refund_journal_entry_id?: string | null
+          refund_notes?: string | null
+          refunded_cents?: number
+          status?: Database["public"]["Enums"]["deposit_status"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deposits_collection_journal_entry_id_fkey"
+            columns: ["collection_journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deposits_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: true
+            referencedRelation: "leases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deposits_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deposits_refund_journal_entry_id_fkey"
+            columns: ["refund_journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           cost_center_id: string | null
@@ -1456,6 +1539,37 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      collect_deposit: {
+        Args: {
+          p_amount_cents: number
+          p_date: string
+          p_lease_id: string
+          p_method: Database["public"]["Enums"]["payment_method"]
+        }
+        Returns: {
+          amount_cents: number
+          collected_date: string
+          collection_journal_entry_id: string | null
+          created_at: string
+          forfeited_cents: number
+          id: string
+          lease_id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          org_id: string
+          refund_date: string | null
+          refund_journal_entry_id: string | null
+          refund_notes: string | null
+          refunded_cents: number
+          status: Database["public"]["Enums"]["deposit_status"]
+          updated_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "deposits"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       complete_move_checklist: {
         Args: { p_checklist_id: string }
         Returns: {
@@ -1721,6 +1835,39 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      refund_deposit: {
+        Args: {
+          p_date: string
+          p_deposit_id: string
+          p_forfeit_cents: number
+          p_method: Database["public"]["Enums"]["payment_method"]
+          p_notes: string
+          p_refund_cents: number
+        }
+        Returns: {
+          amount_cents: number
+          collected_date: string
+          collection_journal_entry_id: string | null
+          created_at: string
+          forfeited_cents: number
+          id: string
+          lease_id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          org_id: string
+          refund_date: string | null
+          refund_journal_entry_id: string | null
+          refund_notes: string | null
+          refunded_cents: number
+          status: Database["public"]["Enums"]["deposit_status"]
+          updated_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "deposits"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       report_balance_sheet: {
         Args: { p_as_of: string; p_org_id: string }
         Returns: {
@@ -1834,6 +1981,7 @@ export type Database = {
       billing_frequency: "weekly" | "monthly" | "quarterly" | "yearly"
       checklist_status: "pending" | "completed"
       checklist_type: "move_in" | "move_out"
+      deposit_status: "held" | "partially_refunded" | "refunded" | "forfeited"
       document_status: "open" | "partial" | "paid" | "void"
       document_type: "rent_invoice" | "credit_note" | "bill" | "expense"
       lease_status: "active" | "ended" | "terminated"
@@ -1983,6 +2131,7 @@ export const Constants = {
       billing_frequency: ["weekly", "monthly", "quarterly", "yearly"],
       checklist_status: ["pending", "completed"],
       checklist_type: ["move_in", "move_out"],
+      deposit_status: ["held", "partially_refunded", "refunded", "forfeited"],
       document_status: ["open", "partial", "paid", "void"],
       document_type: ["rent_invoice", "credit_note", "bill", "expense"],
       lease_status: ["active", "ended", "terminated"],
