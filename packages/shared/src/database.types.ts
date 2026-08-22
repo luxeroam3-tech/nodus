@@ -1559,12 +1559,54 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      report_balance_sheet: {
+        Args: { p_as_of: string; p_org_id: string }
+        Returns: {
+          account_code: string
+          account_name: string
+          account_type: Database["public"]["Enums"]["account_type"]
+          balance_cents: number
+        }[]
+      }
+      report_general_ledger: {
+        Args: {
+          p_account_id: string
+          p_end: string
+          p_org_id: string
+          p_start: string
+        }
+        Returns: {
+          credit_cents: number
+          debit_cents: number
+          entry_date: string
+          memo: string
+          running_balance_cents: number
+        }[]
+      }
       report_monthly_rental_income_tax: {
         Args: { p_month: number; p_org_id: string; p_year: number }
         Returns: {
           gross_rent_received_cents: number
           payment_count: number
           tax_due_cents: number
+        }[]
+      }
+      report_profit_and_loss: {
+        Args: { p_end: string; p_org_id: string; p_start: string }
+        Returns: {
+          account_code: string
+          account_name: string
+          account_type: Database["public"]["Enums"]["account_type"]
+          amount_cents: number
+        }[]
+      }
+      report_trial_balance: {
+        Args: { p_as_of: string; p_org_id: string }
+        Returns: {
+          account_code: string
+          account_name: string
+          account_type: Database["public"]["Enums"]["account_type"]
+          balance_cents: number
         }[]
       }
       report_vat_output: {

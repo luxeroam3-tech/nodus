@@ -1,8 +1,31 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader, StatCard } from "@/components/ui";
 
-export default async function ReportsPage({ searchParams }: { searchParams: Promise<{ period?: string }> }) {
+const REPORT_GROUPS = [
+  {
+    group: "Performance",
+    items: [
+      { href: "/reports/pnl", title: "Profit & Loss", body: "Income minus expenses for a period — did you make money?" },
+      { href: "/reports/aging", title: "Aged Receivables", body: "Unpaid rent invoices, bucketed by how late they are." },
+    ],
+  },
+  {
+    group: "Position",
+    items: [{ href: "/reports/balance-sheet", title: "Balance Sheet", body: "What the org owns vs owes, as of a date." }],
+  },
+  {
+    group: "Detailed & compliance",
+    items: [
+      { href: "/reports/trial-balance", title: "Trial Balance", body: "Every account's balance — for your accountant." },
+      { href: "/reports/general-ledger", title: "General Ledger", body: "Full transaction history for one account." },
+      { href: "/reports/tax", title: "KRA Tax Reports", body: "Monthly Rental Income Tax and VAT output by period." },
+    ],
+  },
+];
+
+export default async function ReportsHubPage() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -13,60 +36,45 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   if (!membership) redirect("/onboarding");
   const orgId = membership.org_id;
 
-  const { data: org } = await supabase.from("organizations").select("vat_registered").eq("id", orgId).maybeSingle();
-
   const now = new Date();
-  const defaultPeriod = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  const { period = defaultPeriod } = await searchParams;
-  const [yearStr, monthStr] = period.split("-");
-  const year = Number(yearStr) || now.getFullYear();
-  const month = Number(monthStr) || now.getMonth() + 1;
+  const startOfMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+  const today = now.toISOString().slice(0, 10);
 
-  const [{ data: rentalTax }, { data: vatOutput }] = await Promise.all([
-    supabase.rpc("report_monthly_rental_income_tax", { p_org_id: orgId, p_year: year, p_month: month }).maybeSingle(),
-    org?.vat_registered
-      ? supabase.rpc("report_vat_output", { p_org_id: orgId, p_year: year, p_month: month }).maybeSingle()
-      : Promise.resolve({ data: null }),
+  const [{ data: pnlRows }, { data: openDocs }] = await Promise.all([
+    supabase.rpc("report_profit_and_loss", { p_org_id: orgId, p_start: startOfMonth, p_end: today }),
+    supabase.from("documents").select("total_cents, paid_cents, credited_cents, type, status").eq("org_id", orgId).in("status", ["open", "partial"]),
   ]);
+
+  const revenue = (pnlRows ?? []).filter((r) => r.account_type === "income").reduce((s, r) => s + (r.amount_cents ?? 0), 0);
+  const expenses = (pnlRows ?? []).filter((r) => r.account_type === "expense").reduce((s, r) => s + (r.amount_cents ?? 0), 0);
+  const netIncome = revenue - expenses;
+  const receivables = (openDocs ?? []).filter((d) => d.type === "rent_invoice").reduce((s, d) => s + (d.total_cents - d.paid_cents - d.credited_cents), 0);
+  const payables = (openDocs ?? []).filter((d) => d.type === "bill").reduce((s, d) => s + (d.total_cents - d.paid_cents - d.credited_cents), 0);
 
   return (
     <div>
-      <PageHeader
-        title="Reports"
-        action={
-          <form className="flex items-center gap-2">
-            <input type="month" name="period" defaultValue={period} className="field-input" style={{ padding: "8px 10px", fontSize: 13 }} />
-            <button className="btn" type="submit">
-              View
-            </button>
-          </form>
-        }
-      />
+      <PageHeader title="Reports" subtitle="Financial overview and statements" />
 
-      <div className="content-grid">
-        <div className="card px-[18px] py-4">
-          <h3 className="[font-family:var(--font-display)] text-[15px] font-semibold mb-1">Monthly Rental Income Tax</h3>
-          <p className="text-[12.5px] text-[var(--text-muted)] mb-4">7.5% MRI, withholding-final tax on residential rent — {period}.</p>
-          <div className="grid grid-cols-2 gap-3">
-            <StatCard label="Gross rent received" cents={rentalTax?.gross_rent_received_cents ?? 0} />
-            <StatCard label="Tax due (7.5%)" cents={rentalTax?.tax_due_cents ?? 0} tone={rentalTax?.tax_due_cents ? "warn" : "neutral"} />
-          </div>
-          <p className="text-[12px] text-[var(--text-muted)] mt-3">{rentalTax?.payment_count ?? 0} payment(s) counted for this period.</p>
-        </div>
-
-        <div className="card px-[18px] py-4">
-          <h3 className="[font-family:var(--font-display)] text-[15px] font-semibold mb-1">VAT Output</h3>
-          <p className="text-[12.5px] text-[var(--text-muted)] mb-4">VAT collected on commercial units — {period}.</p>
-          {org?.vat_registered ? (
-            <>
-              <StatCard label="VAT output" cents={vatOutput?.vat_output_cents ?? 0} />
-              <p className="text-[12px] text-[var(--text-muted)] mt-3">{vatOutput?.invoice_count ?? 0} invoice(s) counted for this period.</p>
-            </>
-          ) : (
-            <p className="text-[13px] text-[var(--text-muted)]">Not VAT-registered — turn this on in Settings to track VAT output.</p>
-          )}
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-6">
+        <StatCard label="Revenue (MTD)" cents={revenue} />
+        <StatCard label="Net income (MTD)" cents={netIncome} tone={netIncome >= 0 ? "good" : "bad"} />
+        <StatCard label="Receivables" cents={receivables} />
+        <StatCard label="Payables" cents={payables} />
       </div>
+
+      {REPORT_GROUPS.map((g) => (
+        <div key={g.group} className="mb-6">
+          <h2 className="text-[13px] font-semibold text-[var(--text-secondary)] mb-2.5 uppercase tracking-wide">{g.group}</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {g.items.map((item) => (
+              <Link key={item.href} href={item.href} className="card px-[18px] py-4 no-underline text-inherit hover:border-[var(--border-strong)] transition-colors">
+                <p className="text-[14px] font-semibold m-0">{item.title}</p>
+                <p className="text-[12.5px] text-[var(--text-muted)] mt-1">{item.body}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
