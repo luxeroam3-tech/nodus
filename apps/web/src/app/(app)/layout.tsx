@@ -58,7 +58,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
         <SidebarNav />
 
-        <div style={{ marginTop: 20, paddingTop: 16, borderTop: "0.5px solid var(--border)" }}>
+        <div className="app-sidebar-footer">
           <p
             style={{
               fontSize: 12,
