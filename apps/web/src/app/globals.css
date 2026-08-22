@@ -1,63 +1,44 @@
 @import "tailwindcss";
 
 :root {
+  /* Brand palette adopted from the Zeno ERP reference build: ink
+     grayscale + a deep Kenya-forest teal accent, "Apple calm" hairline
+     styling — Nodus converged on the same direction independently, this
+     just matches the actual brand hue instead of a generic Apple blue. */
+  color-scheme: light;
   --bg: #f5f5f7;
   --surface: #ffffff;
   --surface-2: #fbfbfd;
-  --surface-3: #efeff2;
+  --surface-3: #e8e8ed;
   --sidebar: #fafafc;
   --text-primary: #1d1d1f;
-  --text-secondary: #6e6e73;
-  --text-muted: #aeaeb2;
-  --border: rgba(0, 0, 0, 0.08);
-  --border-strong: rgba(0, 0, 0, 0.14);
-  --accent: #0066cc;
-  --accent-bg: #e8f1fc;
-  --accent-ink: #004c99;
-  --success: #1fa463;
-  --success-bg: #e5f6ed;
-  --success-ink: #146b42;
-  --warning: #c97a1f;
-  --warning-bg: #fcf0df;
-  --warning-ink: #8a5615;
-  --danger: #d6432e;
-  --danger-bg: #fbe7e4;
-  --danger-ink: #9b2e1e;
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.05);
+  --text-secondary: #515154;
+  --text-muted: #86868b;
+  --border: #e8e8ed;
+  --border-strong: #d2d2d7;
+  --accent: #0f766e;
+  --accent-bg: #e7f1f1;
+  --accent-ink: #0d645e;
+  --success: #1f8a4c;
+  --success-bg: #e6f4ec;
+  --success-ink: #146339;
+  --warning: #b8860b;
+  --warning-bg: #faf1dd;
+  --warning-ink: #8a6408;
+  --danger: #c0392b;
+  --danger-bg: #fbe8e5;
+  --danger-ink: #8f2a1f;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04);
   --glass-bg: rgba(255, 255, 255, 0.72);
   --glass-border: rgba(255, 255, 255, 0.6);
   --font-display: var(--font-display, "Sora"), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-body: var(--font-body, "Inter"), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #000000;
-    --surface: #1c1c1e;
-    --surface-2: #17171a;
-    --surface-3: #232326;
-    --sidebar: #141416;
-    --text-primary: #f5f5f7;
-    --text-secondary: #98989d;
-    --text-muted: #636366;
-    --border: rgba(255, 255, 255, 0.08);
-    --border-strong: rgba(255, 255, 255, 0.14);
-    --accent: #3b9dff;
-    --accent-bg: #122540;
-    --accent-ink: #8fc3ff;
-    --success: #32c875;
-    --success-bg: #0f2a1c;
-    --success-ink: #5fdb98;
-    --warning: #f0a94e;
-    --warning-bg: #33230d;
-    --warning-ink: #f5c27e;
-    --danger: #ff6b54;
-    --danger-bg: #3a1712;
-    --danger-ink: #ff9683;
-    --glass-bg: rgba(28, 28, 30, 0.72);
-    --glass-border: rgba(255, 255, 255, 0.12);
-  }
-}
+/* Nodus stays light-mode-only for now — no auto-dark via
+   prefers-color-scheme. Reintroduce a dark palette behind an explicit
+   [data-theme="dark"] toggle later if wanted; until then every device,
+   dark-mode or not, renders the light tokens above. */
 
 * {
   box-sizing: border-box;
