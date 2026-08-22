@@ -26,7 +26,7 @@ export default async function TrialBalancePage({ searchParams }: { searchParams:
         subtitle={`As of ${asOf}`}
         action={
           <form className="flex items-center gap-2">
-            <input type="date" name="asOf" defaultValue={asOf} className="field-input" style={{ padding: "8px 10px", fontSize: 13 }} />
+            <input type="date" name="asOf" defaultValue={asOf} className="field-input" style={{ padding: "8px 10px", fontSize: 13, width: "auto" }} />
             <button className="btn" type="submit">
               View
             </button>

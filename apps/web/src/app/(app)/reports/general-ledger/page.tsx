@@ -37,9 +37,9 @@ export default async function GeneralLedgerPage({ searchParams }: { searchParams
                 </option>
               ))}
             </select>
-            <input type="date" name="start" defaultValue={start} className="field-input" style={{ padding: "8px 10px", fontSize: 13 }} />
+            <input type="date" name="start" defaultValue={start} className="field-input" style={{ padding: "8px 10px", fontSize: 13, width: "auto" }} />
             <span className="text-[var(--text-muted)] text-[13px]">to</span>
-            <input type="date" name="end" defaultValue={end} className="field-input" style={{ padding: "8px 10px", fontSize: 13 }} />
+            <input type="date" name="end" defaultValue={end} className="field-input" style={{ padding: "8px 10px", fontSize: 13, width: "auto" }} />
             <button className="btn" type="submit">
               View
             </button>

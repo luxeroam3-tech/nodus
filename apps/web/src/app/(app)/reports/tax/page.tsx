@@ -35,7 +35,7 @@ export default async function TaxReportsPage({ searchParams }: { searchParams: P
         title="KRA Tax Reports"
         action={
           <form className="flex items-center gap-2">
-            <input type="month" name="period" defaultValue={period} className="field-input" style={{ padding: "8px 10px", fontSize: 13 }} />
+            <input type="month" name="period" defaultValue={period} className="field-input" style={{ padding: "8px 10px", fontSize: 13, width: "auto" }} />
             <button className="btn" type="submit">
               View
             </button>
