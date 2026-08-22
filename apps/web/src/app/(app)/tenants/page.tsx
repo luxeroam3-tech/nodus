@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { PageHeader, PrimaryLink, TableCard, Th, Td, EmptyState } from "@/components/ui";
+import { PageHeader, PrimaryLink, TableCard, Th, EmptyState } from "@/components/ui";
+import { TenantRow } from "./tenant-row";
 
 export default async function TenantsPage() {
   const supabase = await createClient();
@@ -22,15 +23,7 @@ export default async function TenantsPage() {
           </thead>
           <tbody>
             {(tenants ?? []).map((t) => (
-              <tr key={t.id} className="[&:not(:first-child)]:border-t [&:not(:first-child)]:border-[var(--border)] hover:bg-[var(--surface-2)]">
-                <Td className="font-semibold">{t.full_name}</Td>
-                <Td className="text-[var(--text-muted)]">{t.phone ?? t.email ?? "No contact on file"}</Td>
-                <Td right>
-                  <span className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-medium ${t.user_id ? "bg-[var(--success-bg)] text-[var(--success-ink)]" : "bg-[var(--surface-3)] text-[var(--text-secondary)]"}`}>
-                    {t.user_id ? "Portal active" : "Not yet claimed"}
-                  </span>
-                </Td>
-              </tr>
+              <TenantRow key={t.id} tenant={t} />
             ))}
           </tbody>
         </TableCard>
