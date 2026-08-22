@@ -225,7 +225,11 @@ $$;
 -- role-checked public entry points. Only service_role may execute it.
 -- Caps backfill per lease at p_cap runs so a lease nobody touched for years
 -- can't flood the ledger in one pass — same guard as Zeno's dueRuns().
-create function public.generate_due_rent_invoices(p_cap integer default 12)
+-- FOR UPDATE SKIP LOCKED matters beyond tests: an overlapping cron run (or a
+-- manual trigger firing mid-schedule) would otherwise race two invocations
+-- over the same lease and collide inserting the same document number twice.
+-- Skipping a locked lease is safe — it just gets picked up on the next run.
+create function public.generate_due_rent_invoices(p_cap integer default 12, p_org_id uuid default null)
 returns table (lease_id uuid, document_id uuid, issued_date date)
 language plpgsql
 security definer
@@ -239,7 +243,9 @@ begin
   for lease in
     select * from public.leases
     where status = 'active' and next_invoice_date is not null and next_invoice_date <= current_date
+      and (p_org_id is null or org_id = p_org_id)
     order by next_invoice_date
+    for update skip locked
   loop
     runs := 0;
     while lease.next_invoice_date <= current_date and runs < p_cap loop
@@ -264,8 +270,8 @@ begin
 end;
 $$;
 
-revoke execute on function public.generate_due_rent_invoices(integer) from public, anon, authenticated;
-grant execute on function public.generate_due_rent_invoices(integer) to service_role;
+revoke execute on function public.generate_due_rent_invoices(integer, uuid) from public, anon, authenticated;
+grant execute on function public.generate_due_rent_invoices(integer, uuid) to service_role;
 
 create extension if not exists pg_cron;
 

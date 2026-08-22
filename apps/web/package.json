@@ -11,7 +11,11 @@
   "dependencies": {
     "next": "16.3.2",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "@nodus/mpesa": "workspace:*",
+    "@nodus/shared": "workspace:*",
+    "@supabase/supabase-js": "^2.48.0",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

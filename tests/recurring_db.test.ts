@@ -56,7 +56,7 @@ describe("Phase 3 recurring rent generation", () => {
       .select()
       .single();
 
-    const { data: runs, error } = await adminClient.rpc("generate_due_rent_invoices", { p_cap: 12 });
+    const { data: runs, error } = await adminClient.rpc("generate_due_rent_invoices", { p_cap: 12, p_org_id: org.id });
     expect(error).toBeFalsy();
 
     const thisLeaseRuns = (runs ?? []).filter((r: any) => r.lease_id === lease.id);
@@ -81,7 +81,7 @@ describe("Phase 3 recurring rent generation", () => {
 
   it("running generate_due_rent_invoices again is a no-op once caught up", async () => {
     const { data: before } = await adminClient.from("documents").select("id").eq("org_id", org.id);
-    await adminClient.rpc("generate_due_rent_invoices", { p_cap: 12 });
+    await adminClient.rpc("generate_due_rent_invoices", { p_cap: 12, p_org_id: org.id });
     const { data: after } = await adminClient.from("documents").select("id").eq("org_id", org.id);
     expect(after?.length).toBe(before?.length);
   });

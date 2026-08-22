@@ -538,6 +538,126 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_events: {
+        Row: {
+          account_ref: string | null
+          amount_cents: number
+          created_at: string
+          direction: Database["public"]["Enums"]["payment_direction"]
+          gateway_id: string
+          id: string
+          matched_document_id: string | null
+          org_id: string
+          payer_name: string | null
+          payer_phone: string | null
+          payment_id: string | null
+          provider_ref: string
+          raw_json: Json | null
+          status: string
+        }
+        Insert: {
+          account_ref?: string | null
+          amount_cents: number
+          created_at?: string
+          direction?: Database["public"]["Enums"]["payment_direction"]
+          gateway_id: string
+          id?: string
+          matched_document_id?: string | null
+          org_id: string
+          payer_name?: string | null
+          payer_phone?: string | null
+          payment_id?: string | null
+          provider_ref: string
+          raw_json?: Json | null
+          status?: string
+        }
+        Update: {
+          account_ref?: string | null
+          amount_cents?: number
+          created_at?: string
+          direction?: Database["public"]["Enums"]["payment_direction"]
+          gateway_id?: string
+          id?: string
+          matched_document_id?: string | null
+          org_id?: string
+          payer_name?: string | null
+          payer_phone?: string | null
+          payment_id?: string | null
+          provider_ref?: string
+          raw_json?: Json | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_events_matched_document_id_fkey"
+            columns: ["matched_document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_events_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_gateways: {
+        Row: {
+          c2b_registered_at: string | null
+          config_json: string | null
+          created_at: string
+          enabled: boolean
+          environment: string
+          gateway_id: string
+          id: string
+          org_id: string
+          updated_at: string | null
+          webhook_secret: string | null
+        }
+        Insert: {
+          c2b_registered_at?: string | null
+          config_json?: string | null
+          created_at?: string
+          enabled?: boolean
+          environment?: string
+          gateway_id: string
+          id?: string
+          org_id: string
+          updated_at?: string | null
+          webhook_secret?: string | null
+        }
+        Update: {
+          c2b_registered_at?: string | null
+          config_json?: string | null
+          created_at?: string
+          enabled?: boolean
+          environment?: string
+          gateway_id?: string
+          id?: string
+          org_id?: string
+          updated_at?: string | null
+          webhook_secret?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_gateways_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount_cents: number
@@ -602,6 +722,41 @@ export type Database = {
           },
           {
             foreignKeyName: "payments_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payout_recipients: {
+        Row: {
+          created_at: string
+          destination: string
+          gateway_id: string
+          id: string
+          org_id: string
+          provider_ref: string
+        }
+        Insert: {
+          created_at?: string
+          destination: string
+          gateway_id: string
+          id?: string
+          org_id: string
+          provider_ref: string
+        }
+        Update: {
+          created_at?: string
+          destination?: string
+          gateway_id?: string
+          id?: string
+          org_id?: string
+          provider_ref?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payout_recipients_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -741,6 +896,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _absorb_rounding_unchecked: {
+        Args: {
+          p_cost_center_id: string
+          p_date: string
+          p_diff_cents: number
+          p_org_id: string
+          p_provider_ref: string
+        }
+        Returns: undefined
+      }
       _issue_rent_invoice_unchecked: {
         Args: {
           p_due_date: string
@@ -791,6 +956,41 @@ export type Database = {
         }
         Returns: string
       }
+      apply_gateway_payment: {
+        Args: {
+          p_account_ref: string
+          p_amount_cents: number
+          p_gateway_id: string
+          p_org_id: string
+          p_payer_name: string
+          p_payer_phone: string
+          p_provider_ref: string
+          p_raw: Json
+          p_request_ref: string
+        }
+        Returns: {
+          account_ref: string | null
+          amount_cents: number
+          created_at: string
+          direction: Database["public"]["Enums"]["payment_direction"]
+          gateway_id: string
+          id: string
+          matched_document_id: string | null
+          org_id: string
+          payer_name: string | null
+          payer_phone: string | null
+          payment_id: string | null
+          provider_ref: string
+          raw_json: Json | null
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payment_events"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       create_organization: {
         Args: {
           org_name: string
@@ -811,7 +1011,7 @@ export type Database = {
         }
       }
       generate_due_rent_invoices: {
-        Args: { p_cap?: number }
+        Args: { p_cap?: number; p_org_id?: string }
         Returns: {
           document_id: string
           issued_date: string
@@ -890,6 +1090,38 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "payments"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      request_gateway_payment: {
+        Args: {
+          p_account_ref: string
+          p_amount_cents: number
+          p_gateway_id: string
+          p_matched_document_id?: string
+          p_org_id: string
+          p_provider_ref: string
+        }
+        Returns: {
+          account_ref: string | null
+          amount_cents: number
+          created_at: string
+          direction: Database["public"]["Enums"]["payment_direction"]
+          gateway_id: string
+          id: string
+          matched_document_id: string | null
+          org_id: string
+          payer_name: string | null
+          payer_phone: string | null
+          payment_id: string | null
+          provider_ref: string
+          raw_json: Json | null
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payment_events"
           isOneToOne: true
           isSetofReturn: false
         }
