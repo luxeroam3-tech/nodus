@@ -1,0 +1,30 @@
+{
+  "name": "nodus",
+  "private": true,
+  "version": "0.0.1",
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "turbo run dev --filter=@nodus/web",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify": "pnpm typecheck && pnpm test",
+    "db:push": "supabase db push --linked",
+    "db:diff": "supabase db diff -f",
+    "db:types": "supabase gen types typescript --project-id vkwhqweevqjsgdpcmizh --schema public > packages/shared/src/database.types.ts",
+    "db:env": "bash scripts/db-env.sh"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "^2.48.0",
+    "dotenv": "^16.4.7",
+    "prettier": "^3.4.2",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  }
+}
