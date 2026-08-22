@@ -214,55 +214,70 @@ export type Database = {
           cost_center_id: string | null
           created_at: string
           credited_cents: number
+          cu_invoice_number: string | null
+          cu_serial: string | null
           due_date: string | null
+          fiscalized_at: string | null
           id: string
           issue_date: string
           journal_entry_id: string | null
           number: string
           org_id: string
           paid_cents: number
+          qr_url: string | null
           status: Database["public"]["Enums"]["document_status"]
           tenant_id: string | null
           total_cents: number
           type: Database["public"]["Enums"]["document_type"]
           unit_id: string | null
           updated_at: string | null
+          vat_cents: number
         }
         Insert: {
           cost_center_id?: string | null
           created_at?: string
           credited_cents?: number
+          cu_invoice_number?: string | null
+          cu_serial?: string | null
           due_date?: string | null
+          fiscalized_at?: string | null
           id?: string
           issue_date?: string
           journal_entry_id?: string | null
           number: string
           org_id: string
           paid_cents?: number
+          qr_url?: string | null
           status?: Database["public"]["Enums"]["document_status"]
           tenant_id?: string | null
           total_cents: number
           type: Database["public"]["Enums"]["document_type"]
           unit_id?: string | null
           updated_at?: string | null
+          vat_cents?: number
         }
         Update: {
           cost_center_id?: string | null
           created_at?: string
           credited_cents?: number
+          cu_invoice_number?: string | null
+          cu_serial?: string | null
           due_date?: string | null
+          fiscalized_at?: string | null
           id?: string
           issue_date?: string
           journal_entry_id?: string | null
           number?: string
           org_id?: string
           paid_cents?: number
+          qr_url?: string | null
           status?: Database["public"]["Enums"]["document_status"]
           tenant_id?: string | null
           total_cents?: number
           type?: Database["public"]["Enums"]["document_type"]
           unit_id?: string | null
           updated_at?: string | null
+          vat_cents?: number
         }
         Relationships: [
           {
@@ -518,23 +533,29 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          kra_pin: string | null
           name: string
           type: Database["public"]["Enums"]["org_type"]
           updated_at: string | null
+          vat_registered: boolean
         }
         Insert: {
           created_at?: string
           id?: string
+          kra_pin?: string | null
           name: string
           type?: Database["public"]["Enums"]["org_type"]
           updated_at?: string | null
+          vat_registered?: boolean
         }
         Update: {
           created_at?: string
           id?: string
+          kra_pin?: string | null
           name?: string
           type?: Database["public"]["Enums"]["org_type"]
           updated_at?: string | null
+          vat_registered?: boolean
         }
         Relationships: []
       }
@@ -848,6 +869,7 @@ export type Database = {
           bedrooms: number
           created_at: string
           id: string
+          is_commercial: boolean
           org_id: string
           property_id: string
           status: Database["public"]["Enums"]["unit_status"]
@@ -858,6 +880,7 @@ export type Database = {
           bedrooms?: number
           created_at?: string
           id?: string
+          is_commercial?: boolean
           org_id: string
           property_id: string
           status?: Database["public"]["Enums"]["unit_status"]
@@ -868,6 +891,7 @@ export type Database = {
           bedrooms?: number
           created_at?: string
           id?: string
+          is_commercial?: boolean
           org_id?: string
           property_id?: string
           status?: Database["public"]["Enums"]["unit_status"]
@@ -917,19 +941,24 @@ export type Database = {
           cost_center_id: string | null
           created_at: string
           credited_cents: number
+          cu_invoice_number: string | null
+          cu_serial: string | null
           due_date: string | null
+          fiscalized_at: string | null
           id: string
           issue_date: string
           journal_entry_id: string | null
           number: string
           org_id: string
           paid_cents: number
+          qr_url: string | null
           status: Database["public"]["Enums"]["document_status"]
           tenant_id: string | null
           total_cents: number
           type: Database["public"]["Enums"]["document_type"]
           unit_id: string | null
           updated_at: string | null
+          vat_cents: number
         }
         SetofOptions: {
           from: "*"
@@ -948,6 +977,20 @@ export type Database = {
           p_source_type: string
         }
         Returns: string
+      }
+      _simulated_etims_sign: {
+        Args: {
+          p_date: string
+          p_invoice_number: string
+          p_seller_pin: string
+          p_total_cents: number
+          p_vat_cents: number
+        }
+        Returns: {
+          cu_invoice_number: string
+          cu_serial: string
+          qr_url: string
+        }[]
       }
       advance_date: {
         Args: {
@@ -999,13 +1042,47 @@ export type Database = {
         Returns: {
           created_at: string
           id: string
+          kra_pin: string | null
           name: string
           type: Database["public"]["Enums"]["org_type"]
           updated_at: string | null
+          vat_registered: boolean
         }
         SetofOptions: {
           from: "*"
           to: "organizations"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fiscalize_document: {
+        Args: { p_document_id: string }
+        Returns: {
+          cost_center_id: string | null
+          created_at: string
+          credited_cents: number
+          cu_invoice_number: string | null
+          cu_serial: string | null
+          due_date: string | null
+          fiscalized_at: string | null
+          id: string
+          issue_date: string
+          journal_entry_id: string | null
+          number: string
+          org_id: string
+          paid_cents: number
+          qr_url: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          tenant_id: string | null
+          total_cents: number
+          type: Database["public"]["Enums"]["document_type"]
+          unit_id: string | null
+          updated_at: string | null
+          vat_cents: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "documents"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -1033,19 +1110,24 @@ export type Database = {
           cost_center_id: string | null
           created_at: string
           credited_cents: number
+          cu_invoice_number: string | null
+          cu_serial: string | null
           due_date: string | null
+          fiscalized_at: string | null
           id: string
           issue_date: string
           journal_entry_id: string | null
           number: string
           org_id: string
           paid_cents: number
+          qr_url: string | null
           status: Database["public"]["Enums"]["document_status"]
           tenant_id: string | null
           total_cents: number
           type: Database["public"]["Enums"]["document_type"]
           unit_id: string | null
           updated_at: string | null
+          vat_cents: number
         }
         SetofOptions: {
           from: "*"
@@ -1093,6 +1175,21 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      report_monthly_rental_income_tax: {
+        Args: { p_month: number; p_org_id: string; p_year: number }
+        Returns: {
+          gross_rent_received_cents: number
+          payment_count: number
+          tax_due_cents: number
+        }[]
+      }
+      report_vat_output: {
+        Args: { p_month: number; p_org_id: string; p_year: number }
+        Returns: {
+          invoice_count: number
+          vat_output_cents: number
+        }[]
       }
       request_gateway_payment: {
         Args: {
