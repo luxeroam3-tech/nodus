@@ -71,7 +71,7 @@ export default async function OverviewPage() {
     <div>
       <div className="page-header">
         <div>
-          <p style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 600, margin: 0 }}>Overview</p>
+          <p className="page-title">Overview</p>
           <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "3px 0 0" }}>
             {(properties ?? []).length} propert{(properties ?? []).length === 1 ? "y" : "ies"} · {totalUnits} units
           </p>

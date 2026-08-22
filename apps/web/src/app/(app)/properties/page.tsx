@@ -15,7 +15,7 @@ export default async function PropertiesPage() {
   return (
     <div>
       <div className="page-header">
-        <p style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 600, margin: 0 }}>Properties</p>
+        <p className="page-title">Properties</p>
         <Link href="/properties/new" className="btn btn-primary" style={{ textDecoration: "none" }}>
           Add property
         </Link>

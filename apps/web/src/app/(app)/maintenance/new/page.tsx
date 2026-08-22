@@ -7,7 +7,7 @@ export default async function NewMaintenanceRequestPage() {
 
   return (
     <div style={{ maxWidth: 460 }}>
-      <p style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 600, margin: "0 0 18px" }}>Report an issue</p>
+      <p className="page-title" style={{ marginBottom: 18 }}>Report an issue</p>
       <NewMaintenanceForm units={(units ?? []) as any} />
     </div>
   );

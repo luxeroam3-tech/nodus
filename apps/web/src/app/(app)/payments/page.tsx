@@ -18,7 +18,7 @@ export default async function PaymentsPage() {
 
   return (
     <div>
-      <p style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 600, margin: "0 0 18px" }}>Payments</p>
+      <p className="page-title" style={{ marginBottom: 18 }}>Payments</p>
 
       <div style={{ display: "grid", gap: 16 }}>
         <div className="card" style={{ overflow: "hidden" }}>

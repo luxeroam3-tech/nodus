@@ -57,7 +57,7 @@ export function PaymentReceiptPdf({
   qrDataUrl?: string;
   receiptUrl?: string;
 }) {
-  const brand = org.brandColor || "#0f766e";
+  const brand = org.brandColor || "#1e3a5f";
   const s = makeStyles(brand);
 
   return (

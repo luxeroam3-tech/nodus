@@ -29,7 +29,7 @@ export function PaymentReceipt({
   date,
   receiptUrl,
 }: PaymentReceiptProps) {
-  const color = brandColor || "#0f766e";
+  const color = brandColor || "#1e3a5f";
   return (
     <html>
       <body style={{ backgroundColor: "#f1f5f9", fontFamily: "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif", margin: 0, padding: 0 }}>

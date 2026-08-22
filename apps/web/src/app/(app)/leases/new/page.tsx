@@ -10,7 +10,7 @@ export default async function NewLeasePage() {
 
   return (
     <div style={{ maxWidth: 460 }}>
-      <p style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 600, margin: "0 0 18px" }}>New lease</p>
+      <p className="page-title" style={{ marginBottom: 18 }}>New lease</p>
       <NewLeaseForm units={(vacantUnits ?? []) as any} tenants={tenants ?? []} />
     </div>
   );

@@ -13,7 +13,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
   return (
     <div>
-      <p style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 600, margin: "0 0 4px" }}>{property.name}</p>
+      <p className="page-title" style={{ marginBottom: 4 }}>{property.name}</p>
       <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "0 0 22px" }}>{property.address ?? property.type}</p>
 
       <div className="content-grid">

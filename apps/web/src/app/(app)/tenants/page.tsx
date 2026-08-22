@@ -8,7 +8,7 @@ export default async function TenantsPage() {
   return (
     <div>
       <div className="page-header">
-        <p style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 600, margin: 0 }}>Tenants</p>
+        <p className="page-title">Tenants</p>
         <Link href="/tenants/new" className="btn btn-primary" style={{ textDecoration: "none" }}>
           Add tenant
         </Link>

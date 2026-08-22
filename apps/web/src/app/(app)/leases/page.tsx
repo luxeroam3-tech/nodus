@@ -16,7 +16,7 @@ export default async function LeasesPage() {
   return (
     <div>
       <div className="page-header">
-        <p style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 600, margin: 0 }}>Leases</p>
+        <p className="page-title">Leases</p>
         <Link href="/leases/new" className="btn btn-primary" style={{ textDecoration: "none" }}>
           New lease
         </Link>

@@ -9,7 +9,7 @@ export default function NewTenantPage() {
 
   return (
     <div style={{ maxWidth: 440 }}>
-      <p style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 600, margin: "0 0 18px" }}>Add a tenant</p>
+      <p className="page-title" style={{ marginBottom: 18 }}>Add a tenant</p>
       <form action={formAction} className="card" style={{ padding: "20px 22px" }}>
         <div style={{ marginBottom: 14 }}>
           <label className="field-label" htmlFor="fullName">
