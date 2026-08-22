@@ -221,6 +221,7 @@ export type Database = {
           id: string
           issue_date: string
           journal_entry_id: string | null
+          notes: string | null
           number: string
           org_id: string
           paid_cents: number
@@ -244,6 +245,7 @@ export type Database = {
           id?: string
           issue_date?: string
           journal_entry_id?: string | null
+          notes?: string | null
           number: string
           org_id: string
           paid_cents?: number
@@ -267,6 +269,7 @@ export type Database = {
           id?: string
           issue_date?: string
           journal_entry_id?: string | null
+          notes?: string | null
           number?: string
           org_id?: string
           paid_cents?: number
@@ -1261,6 +1264,7 @@ export type Database = {
           id: string
           issue_date: string
           journal_entry_id: string | null
+          notes: string | null
           number: string
           org_id: string
           paid_cents: number
@@ -1443,6 +1447,7 @@ export type Database = {
           id: string
           issue_date: string
           journal_entry_id: string | null
+          notes: string | null
           number: string
           org_id: string
           paid_cents: number
@@ -1500,6 +1505,7 @@ export type Database = {
           id: string
           issue_date: string
           journal_entry_id: string | null
+          notes: string | null
           number: string
           org_id: string
           paid_cents: number
@@ -1519,6 +1525,34 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      pay_bill: {
+        Args: {
+          p_amount_cents: number
+          p_date: string
+          p_document_id: string
+          p_method: Database["public"]["Enums"]["payment_method"]
+          p_reference: string
+        }
+        Returns: {
+          amount_cents: number
+          bank_account_id: string | null
+          created_at: string
+          date: string
+          direction: Database["public"]["Enums"]["payment_direction"]
+          document_id: string | null
+          id: string
+          journal_entry_id: string | null
+          method: Database["public"]["Enums"]["payment_method"]
+          org_id: string
+          reference: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payments"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       post_entry: {
         Args: {
           p_date: string
@@ -1529,6 +1563,48 @@ export type Database = {
           p_source_type: string
         }
         Returns: string
+      }
+      record_expense: {
+        Args: {
+          p_amount_cents: number
+          p_cost_center_id?: string
+          p_date: string
+          p_expense_account_code: string
+          p_method: Database["public"]["Enums"]["payment_method"]
+          p_org_id: string
+          p_paid?: boolean
+          p_vendor_name: string
+        }
+        Returns: {
+          cost_center_id: string | null
+          created_at: string
+          credited_cents: number
+          cu_invoice_number: string | null
+          cu_serial: string | null
+          due_date: string | null
+          fiscalized_at: string | null
+          id: string
+          issue_date: string
+          journal_entry_id: string | null
+          notes: string | null
+          number: string
+          org_id: string
+          paid_cents: number
+          qr_url: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          tenant_id: string | null
+          total_cents: number
+          type: Database["public"]["Enums"]["document_type"]
+          unit_id: string | null
+          updated_at: string | null
+          vat_cents: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "documents"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       record_payment: {
         Args: {

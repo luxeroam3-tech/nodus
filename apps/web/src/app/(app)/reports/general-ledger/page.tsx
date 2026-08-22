@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader, TableCard, Th, Td, Money, EmptyState } from "@/components/ui";
@@ -27,6 +28,7 @@ export default async function GeneralLedgerPage({ searchParams }: { searchParams
       <PageHeader
         title="General Ledger"
         action={
+          <div className="flex items-center gap-2 flex-wrap">
           <form className="flex items-center gap-2 flex-wrap">
             <select name="account" defaultValue={account} className="field-input" style={{ padding: "8px 10px", fontSize: 13, width: "auto" }}>
               {(accounts ?? []).map((a) => (
@@ -42,6 +44,10 @@ export default async function GeneralLedgerPage({ searchParams }: { searchParams
               View
             </button>
           </form>
+          <Link href="/reports/journal/new" className="btn btn-primary no-underline">
+            New entry
+          </Link>
+          </div>
         }
       />
 
